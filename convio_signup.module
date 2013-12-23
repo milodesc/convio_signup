@@ -1,0 +1,9 @@
+<?php
+function convio_signup_block_info () {
+	$blocks['Convio Email Signup'] = array(
+		'info' => t('Convio Email Signup'),
+		'cache' => DRUPAL_NO_CACHE,
+	);
+
+	return $blocks;
+}

@@ -1,0 +1,5 @@
+name = Convio Signup
+description = Makes a block available that contains a form which can be used to create a Convio Luminate Online constituent registration form.
+core = 7.x
+files[] = convio_signup.module
+dependencise[] = block
