@@ -4,6 +4,5 @@ function convio_signup_block_info () {
 		'info' => t('Convio Email Signup'),
 		'cache' => DRUPAL_NO_CACHE,
 	);
-
 	return $blocks;
 }
