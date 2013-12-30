@@ -18,7 +18,7 @@ function convio_signup_block_info() {
 /**
  * Implements hook_help().
  */
-function overlay_help($path, $arg) {
+function convio_signup_help($path, $arg) {
   switch ($path) {
     case 'admin/help#convio_signup':
       $output = '';
