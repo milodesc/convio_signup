@@ -1,8 +1,29 @@
 <?php
-function convio_signup_block_info () {
-	$blocks['Convio Email Signup'] = array(
-		'info' => t('Convio Email Signup'),
-		'cache' => DRUPAL_NO_CACHE,
-	);
-	return $blocks;
+/**
+ * @file
+ * Custom functionality to add email addresses to the CLO
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function convio_signup_block_info() {
+  $blocks['Convio Email Signup'] = array(
+    'info' => t('Convio Email Signup'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_help().
+ */
+function overlay_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#convio_signup':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t("This module makes a new block available for admins to include on other pages. The block containsa a simple form which will add an email address to the constituent database in Blackbaud's Convio Luminate Online product") . '</p>';
+      return $output;
+  }
 }
