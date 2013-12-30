@@ -23,7 +23,7 @@ function overlay_help($path, $arg) {
     case 'admin/help#convio_signup':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t("This module makes a new block available for admins to include on other pages. The block containsa a simple form which will add an email address to the constituent database in Blackbaud's Convio Luminate Online product") . '</p>';
+      $output .= '<p>' . t("This module makes a new block available for admins to include on other pages. The block contains a simple form which will add an email address to the constituent database in Blackbaud's Convio Luminate Online product") . '</p>';
       return $output;
   }
 }
