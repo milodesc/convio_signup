@@ -27,3 +27,15 @@ function convio_signup_help($path, $arg) {
       return $output;
   }
 }
+
+/**
+ * Implements hook_permission().
+ */
+function convio_signup_permission() {
+  return array(
+    'administer convio signup' => array(
+      'title' => t('Administer Convio Signup'),
+      'description' => t('Perform administrative tasks on Convio Signup functionality.'),
+    ),
+  );
+}
