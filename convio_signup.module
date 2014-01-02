@@ -39,3 +39,72 @@ function convio_signup_permission() {
     ),
   );
 }
+
+/**
+ * Implements hook_menu().
+ */
+function convio_signup_menu() {
+  $items = array();
+
+  // Admin configuration group.
+  $items['admin/config/convio_signup'] = array(
+    'title' => 'Convio Signup',
+    'description' => 'Administer Convio Signup',
+    'access arguments' => array('administer convio signup'),
+  );
+
+  // Admin configuration - Settings.
+  $items['admin/config/convio_signup/manage'] = array(
+    'title' => 'Convio Signup Settings',
+    'description' => 'Manage Convio Signup settings and configurations.',
+    'access arguments' => array('administer convio signup'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('convio_signup_admin_settings_form'),
+  );
+
+  return $items;
+}
+
+/**
+ * Creates Convio Signup administration form.
+ */
+function convio_signup_admin_settings_form($node, &$form_state) {
+  $form = array();
+
+  $form['overview'] = array(
+    '#markup' => t('This interface allows administrators to manage general Convio Email settings.'),
+  );
+
+  $form['convio_email_clo_form_id'] = array(
+    '#title' => t('Convio Luminate Online Survey ID'),
+    '#description' => t('The 4-digit survey ID used by Convio to identify the survey.'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#size' => 4,
+    '#maxlength' => 4,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+/**
+ * Validates Convio Signup admin configuration form.
+ */
+function convio_signup_admin_settings_form_validate($form, &$form_state) {
+  $clo_form_id = intval($form_state['values']['convio_email_clo_form_id']);
+  if ($clo_form_id < 1000 || $clo_form_id > 9999) {
+    form_set_error('convio_email_clo_form_id', t('The Convio Luminate Online Survey ID must be a 4 digit number.'));
+  }
+}
+
+/**
+ * Action to take upon submission of the Convio Signup admin configuration form.
+ */
+function convio_signup_admin_settings_form_submit($form, &$form_state) {
+
+}
