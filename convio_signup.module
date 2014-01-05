@@ -5,6 +5,11 @@
  */
 
 /**
+ * Sets default placeholder text.
+ */
+define('DEFAULT_PLACEHOLDER_TEXT', 'Your email address');
+
+/**
  * Implements hook_block_info().
  */
 function convio_signup_block_info() {
@@ -41,6 +46,7 @@ function convio_signup_block_form($form, &$form_state) {
     '#required' => TRUE,
     '#maxlength' => 254,
     '#size' => 14,
+    '#attributes' => array('placeholder' => variable_get('convio_signup_default_placeholder', t(DEFAULT_PLACEHOLDER_TEXT))),
   );
 
   $form['submit'] = array(
@@ -65,7 +71,6 @@ function convio_signup_block_form_validate($form, &$form_state) {
  * Adds email address to CLO database via form submission.
  */
 function convio_signup_block_form_submit($form, &$form_state) {
-  
 }
 
 
@@ -129,13 +134,22 @@ function convio_signup_admin_settings_form($node, &$form_state) {
     '#markup' => t('This interface allows administrators to manage general Convio Email settings.'),
   );
 
-  $form['convio_email_clo_form_id'] = array(
+  $form['convio_signup_clo_form_id'] = array(
     '#title' => t('Convio Luminate Online Survey ID'),
     '#description' => t('The 4-digit survey ID used by Convio to identify the survey.'),
     '#type' => 'textfield',
     '#required' => TRUE,
     '#size' => 4,
     '#maxlength' => 4,
+  );
+
+  $form['convio_signup_clo_email_field_placeholder'] = array(
+    '#title' => t('Email field placeholder'),
+    '#description' => t("The text that displays inside the email field before the user enters their email address. Defaults to '") . DEFAULT_PLACEHOLDER_TEXT . t("'."),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('convio_signup_default_placeholder', t(DEFAULT_PLACEHOLDER_TEXT)),
+    '#size' => 30,
+    '#maxlength' => 512,
   );
 
   $form['submit'] = array(
@@ -150,9 +164,9 @@ function convio_signup_admin_settings_form($node, &$form_state) {
  * Validates Convio Signup admin configuration form.
  */
 function convio_signup_admin_settings_form_validate($form, &$form_state) {
-  $clo_form_id = intval($form_state['values']['convio_email_clo_form_id']);
+  $clo_form_id = intval($form_state['values']['convio_signup_clo_form_id']);
   if ($clo_form_id < 1000 || $clo_form_id > 9999) {
-    form_set_error('convio_email_clo_form_id', t('The Convio Luminate Online Survey ID must be a 4 digit number.'));
+    form_set_error('convio_signup_clo_form_id', t('The Convio Luminate Online Survey ID must be a 4 digit number.'));
   }
 }
 
@@ -160,5 +174,6 @@ function convio_signup_admin_settings_form_validate($form, &$form_state) {
  * Action to take upon submission of the Convio Signup admin configuration form.
  */
 function convio_signup_admin_settings_form_submit($form, &$form_state) {
-
+  variable_set('convio_signup_default_placeholder', $form_state['values']['convio_signup_clo_email_field_placeholder']);
+  drupal_set_message(t('Your configuration has been saved.'));
 }
