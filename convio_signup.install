@@ -6,6 +6,33 @@
  */
 
 /**
+ * Implements hook_schema().
+ */
+function convio_signup_schema() {
+  $schema['email_list_signups'] = array(
+    'description' => 'A table containing the submissions of the email list signup.',
+    'fields' => array(
+      'submission_id' => array(
+        'description' => 'The primary identifier for a submission.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'email_address_submitted' => array(
+        'description' => 'The email address submitted by the user.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('submission_id'),
+  );
+
+  return $schema;
+}
+
+/**
  * Implements hook_uninstall().
  */
 function convio_signup_uninstall() {
