@@ -5,11 +5,6 @@
  */
 
 /**
- * Sets default placeholder text.
- */
-define('DEFAULT_PLACEHOLDER_TEXT', 'Your email address');
-
-/**
  * Implements hook_block_info().
  */
 function convio_signup_block_info() {
@@ -42,16 +37,19 @@ function convio_signup_block_form($form, &$form_state) {
 
   $form['constituent_email_address'] = array(
     '#type' => 'textfield',
-    '#description' => t('Enter your email address to stay in touch.'),
+    '#description' => variable_get('convio_signup_default_helper_text'),
     '#required' => TRUE,
     '#maxlength' => 254,
     '#size' => 14,
-    '#attributes' => array('placeholder' => variable_get('convio_signup_default_placeholder', t(DEFAULT_PLACEHOLDER_TEXT))),
+    '#attributes' => array(
+      'placeholder' => variable_get('convio_signup_default_placeholder'),
+    ),
   );
 
+  $submit_button_text = variable_get('convio_signup_submit_button_text');
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Submit'),
+    '#value' => empty($submit_button_text) ? "Submit" : $submit_button_text,
   );
 
   return $form;
@@ -146,11 +144,29 @@ function convio_signup_admin_settings_form($node, &$form_state) {
 
   $form['convio_signup_clo_email_field_placeholder'] = array(
     '#title' => t('Email field placeholder'),
-    '#description' => t("The text that displays inside the email field before the user enters their email address. Defaults to '") . DEFAULT_PLACEHOLDER_TEXT . t("'."),
+    '#description' => t("The text that displays inside the email field before the user enters their email address."),
     '#type' => 'textfield',
-    '#default_value' => variable_get('convio_signup_default_placeholder', t(DEFAULT_PLACEHOLDER_TEXT)),
+    '#default_value' => variable_get('convio_signup_default_placeholder'),
     '#size' => 30,
     '#maxlength' => 512,
+  );
+
+  $form['convio_signup_default_helper_text'] = array(
+    '#title' => t('User Helper Text'),
+    '#description' => t('Text that instucts the user how to use the form.'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('convio_signup_default_helper_text'),
+    '#size' => 30,
+    '#maxlength' => 255,
+  );
+
+  $form['convio_signup_submit_button_text'] = array(
+    '#title' => t("Submit button text"),
+    '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('convio_signup_submit_button_text'),
+    '#size' => 30,
+    '#maxlength' => 255,
   );
 
   $form['submit'] = array(
@@ -177,5 +193,7 @@ function convio_signup_admin_settings_form_validate($form, &$form_state) {
 function convio_signup_admin_settings_form_submit($form, &$form_state) {
   variable_set('convio_signup_clo_form_id', $form_state['values']['convio_signup_clo_form_id']);
   variable_set('convio_signup_default_placeholder', $form_state['values']['convio_signup_clo_email_field_placeholder']);
+  variable_set('convio_signup_default_helper_text', $form_state['values']['convio_signup_default_helper_text']);
+  variable_set('convio_signup_submit_button_text', $form_state['values']['convio_signup_submit_button_text']);
   drupal_set_message(t('Your configuration has been saved.'));
 }
