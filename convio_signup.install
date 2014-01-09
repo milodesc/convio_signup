@@ -25,6 +25,12 @@ function convio_signup_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
+      'submission_time' => array(
+        'description' => 'The date and time the email address was submitted',
+        'type' => 'varchar',
+        'mysql_type' => 'datetime',
+        'not null' => TRUE,
+      ),
     ),
     'primary key' => array('submission_id'),
   );
