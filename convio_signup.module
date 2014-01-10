@@ -69,14 +69,36 @@ function convio_signup_block_form_validate($form, &$form_state) {
  * Adds email address to CLO database via form submission.
  */
 function convio_signup_block_form_submit($form, &$form_state) {
-  backup_email_address($form_state['values']['constituent_email_address']);
+  $submission_id = backup_email_address($form_state['values']['constituent_email_address']);
+  $constituent_id = create_clo_record_via_api();
+  update_email_list_signups_record('constituent_record_id', $constituent_id, $submission_id);
+}
+
+/**
+ * Store the constituent record ID which was created by CLO in the Drupal database.
+ */
+function update_email_list_signups_record($field, $value, $submission_id) {
+  return db_update('email_list_signups')
+    ->fields(array(
+      $field => $value,
+    ))
+    ->condition('submission_id', $submission_id)
+    ->execute();
+}
+
+/**
+ * Uses the CLO API to create a new constituent record.
+ */
+function create_clo_record_via_api() {
+  // For now, just return a random number.
+  return rand(0, 999999);
 }
 
 /**
  * Backs up the email address and other data to the Drupal database.
  */
 function backup_email_address($email_address) {
-  db_insert('email_list_signups')
+  return db_insert('email_list_signups')
     ->fields(array(
       'email_address_submitted' => $email_address,
       'submission_time' => date("Y-m-d H:i:s", REQUEST_TIME),

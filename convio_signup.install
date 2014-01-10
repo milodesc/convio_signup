@@ -26,10 +26,15 @@ function convio_signup_schema() {
         'default' => '',
       ),
       'submission_time' => array(
-        'description' => 'The date and time the email address was submitted',
+        'description' => 'The date and time the email address was submitted.',
         'type' => 'varchar',
         'mysql_type' => 'datetime',
         'not null' => TRUE,
+      ),
+      'constituent_record_id' => array(
+        'description' => 'The constituent record ID created by Convio Luminate Online.',
+        'type' => 'int',
+        'size' => 'medium',
       ),
     ),
     'primary key' => array('submission_id'),
