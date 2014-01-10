@@ -102,6 +102,7 @@ function backup_email_address($email_address) {
     ->fields(array(
       'email_address_submitted' => $email_address,
       'submission_time' => date("Y-m-d H:i:s", REQUEST_TIME),
+      'submission_source_url' => current_path(),
     ))
     ->execute();
 }
