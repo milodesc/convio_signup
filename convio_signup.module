@@ -43,10 +43,14 @@ function convio_signup_block_form($form, &$form_state) {
     '#required' => TRUE,
     '#maxlength' => 254,
     '#size' => 14,
-    '#attributes' => array(
-      'placeholder' => variable_get('convio_signup_default_placeholder'),
-    ),
   );
+
+  $placeholder_txt = variable_get('convio_signup_default_placeholder');
+  if (!empty($placeholder_txt)) {
+    $form['constituent_email_address']['#attributes'] = array(
+      'placeholder' => variable_get('convio_signup_default_placeholder'),
+    );
+  }
 
   $submit_button_text = variable_get('convio_signup_submit_button_text');
   $submit_button_image_fid = variable_get('convio_signup_submit_button_image');
@@ -230,7 +234,7 @@ function convio_signup_admin_settings_form($node, &$form_state) {
 
   $form['convio_signup_submit_button_text'] = array(
     '#title' => t("Submit button text"),
-    '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
+    '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'. If a submit button is supplied, this field is ignored."),
     '#type' => 'textfield',
     '#default_value' => variable_get('convio_signup_submit_button_text'),
     '#size' => 30,
