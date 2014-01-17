@@ -59,6 +59,12 @@ function convio_signup_block_form($form, &$form_state) {
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => empty($submit_button_text) ? "Submit" : $submit_button_text,
+      "#ajax" => array(
+        "callback" => "convio_signup_form_callback",
+        "wrapper" => "convio_signup_ajax_wrapper",
+        "effect" => "fade",
+        "progress" => array('type' => 'none'),
+      ),
     );
   }
   else {
@@ -75,16 +81,34 @@ function convio_signup_block_form($form, &$form_state) {
     }
   }
 
+  $form['wrapper'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<div id="convio_signup_ajax_wrapper">hi',
+    '#suffix' => '</div>',
+  );
+
   return $form;
+}
+
+function convio_signup_form_callback() {
+  // $errors = form_get_errors();
+  if (!form_get_errors()) {
+    return "<div id='convio_signup_ajax_wrapper'>Thanks!</div>";
+  }
+  else {
+    return "<div id='convio_signup_ajax_wrapper'></div>";
+  }
 }
 
 /**
  * Validates user input.
  */
 function convio_signup_block_form_validate($form, &$form_state) {
+  form_clear_error('constituent_email_address');
   $constituent_email_address = $form_state['values']['constituent_email_address'];
-  if (!valid_email_address($constituent_email_address)) {
-    form_set_error('constituent_email_address', "You've entered an invalid email address");
+  if (empty($constituent_email_address) || !valid_email_address($constituent_email_address)) {
+    watchdog("convio_signup", "invalid email address submitted: $constituent_email_address");
+    form_set_error('constituent_email_address', "Invalid email address.");
   }
 }
 
