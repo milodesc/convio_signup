@@ -74,13 +74,13 @@ function convio_signup_block_form($form, &$form_state) {
       );
     }
   }
-  $form['submit']['#ajax'] = array(
-    "callback" => "convio_signup_form_callback",
-    "wrapper" => "convio_signup_ajax_wrapper",
-    "effect" => "fade",
-    "speed" => "slow",
-    "progress" => array('type' => 'none'),
-  );
+//  $form['submit']['#ajax'] = array(
+//    "callback" => "convio_signup_form_callback",
+//    "wrapper" => "convio_signup_ajax_wrapper",
+//    "effect" => "fade",
+//    "speed" => "slow",
+//    "progress" => array('type' => 'none'),
+//  );
 
   $form['wrapper'] = array(
     '#type' => 'markup',
@@ -88,25 +88,53 @@ function convio_signup_block_form($form, &$form_state) {
     '#suffix' => '</div>',
   );
 
+  $form['#attached']['js'] = array(
+    array(
+      'type'  => 'file',
+      'data' => drupal_get_path('module', 'convio_signup') . '/js/resultsReturned.js',
+    ),
+  );
+
   return $form;
 }
 
-function convio_signup_form_callback() {
-  $thank_you_msg = variable_get('convio_signup_submission_success_message');
+function convio_signup_form_callback($form, $form_state) {
+
+  $commands = array();
+
+  $commands[] = array(
+    'command' => 'fadeAwayStatusMessage',
+  );
+
   if (!form_get_errors()) {
-    $thank_you_msg = (empty($thank_you_msg)) ? "Thanks! We'll be in touch soon!" : $thank_you_msg;
-    return "<div id='convio_signup_ajax_wrapper'>" . $thank_you_msg . "</div>";
+    $status_message = variable_get('convio_signup_submission_success_message');
+    $status_message = (empty($status_message)) ? "Thanks! We'll be in touch soon!" : $status_message;
   }
   else {
-    return "<div id='convio_signup_ajax_wrapper'></div>";
+    $status_message = form_get_error($form['constituent_email_address']);
   }
+  $response = array(
+    '#markup' => $status_message,
+  );
+  $commands[] = ajax_command_html('#convio_signup_ajax_wrapper', render($response));
+
+//  watchdog("convio_signup", "before ajax clear");
+//  form_clear_error();
+//  watchdog("convio_signup", "after ajax clear");
+
+  return array(
+    '#type' => 'ajax',
+    '#commands' => $commands,
+  );
 }
 
 /**
  * Validates user input.
  */
 function convio_signup_block_form_validate($form, &$form_state) {
-  form_clear_error('constituent_email_address');
+//  watchdog("convio_signup", "b4 validate clear");
+//  form_clear_error();
+//  watchdog("convio_signup", "after validate clear");
   $constituent_email_address = $form_state['values']['constituent_email_address'];
   if (empty($constituent_email_address) || !valid_email_address($constituent_email_address)) {
     watchdog("convio_signup", "invalid email address submitted: $constituent_email_address");
