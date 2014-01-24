@@ -74,13 +74,13 @@ function convio_signup_block_form($form, &$form_state) {
       );
     }
   }
-//  $form['submit']['#ajax'] = array(
-//    "callback" => "convio_signup_form_callback",
-//    "wrapper" => "convio_signup_ajax_wrapper",
-//    "effect" => "fade",
-//    "speed" => "slow",
-//    "progress" => array('type' => 'none'),
-//  );
+  $form['submit']['#ajax'] = array(
+    "callback" => "convio_signup_form_callback",
+    "wrapper" => "convio_signup_ajax_wrapper",
+    "effect" => "fade",
+    "speed" => "slow",
+    "progress" => array('type' => 'none'),
+  );
 
   $form['wrapper'] = array(
     '#type' => 'markup',
@@ -133,7 +133,7 @@ function convio_signup_form_callback($form, $form_state) {
  */
 function convio_signup_block_form_validate($form, &$form_state) {
 //  watchdog("convio_signup", "b4 validate clear");
-//  form_clear_error();
+  form_clear_error();
 //  watchdog("convio_signup", "after validate clear");
   $constituent_email_address = $form_state['values']['constituent_email_address'];
   if (empty($constituent_email_address) || !valid_email_address($constituent_email_address)) {
