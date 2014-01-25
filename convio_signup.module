@@ -380,12 +380,13 @@ function convio_signup_block_save($delta = '', $edit = array()) {
       variable_set('convio_signup_submit_button_text', $edit['convio_signup_submit_button_text']);
       variable_set('convio_signup_submit_button_radio', $edit['convio_signup_submit_button_radio']);
 
-      manage_file('convio_signup_submit_button_image', $edit);
-      manage_file('convio_signup_submit_button_image_rollover', $edit);
+      $block = block_load('convio_signup', $delta);
+      manage_file('convio_signup_submit_button_image', $edit, $block);
+      manage_file('convio_signup_submit_button_image_rollover', $edit, $block);
   }
 }
 
-function manage_file($file_form_name, $edit) {
+function manage_file($file_form_name, $edit, $block) {
 
   if (!empty($edit[$file_form_name])) {
     // The admin field was not empty, save the image.
@@ -395,8 +396,8 @@ function manage_file($file_form_name, $edit) {
     variable_set($file_form_name, $file->fid);
 
     $references = file_usage_list($file);
-    if (empty($references) || empty($references['convio_signup']['user'][1]) || $references['convio_signup']['user'][1] < 1) {
-      file_usage_add($file, 'convio_signup', 'user', 1);
+    if (empty($references) || empty($references['convio_signup']['block'][$block->bid]) || $references['convio_signup']['block'][$block->bid] < 1) {
+      file_usage_add($file, 'convio_signup', 'block', $block->bid);
     }
   }
   else {
