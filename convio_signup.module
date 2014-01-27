@@ -128,7 +128,7 @@ function convio_signup_block_form_validate($form, &$form_state) {
   form_clear_error();
   $constituent_email_address = $form_state['values']['constituent_email_address'];
   if (empty($constituent_email_address) || !valid_email_address($constituent_email_address)) {
-    watchdog("convio_signup", "invalid email address submitted: $constituent_email_address");
+    watchdog("convio_signup", "invalid email address submitted: '$constituent_email_address''");
     form_set_error('constituent_email_address', "Invalid email address.");
   }
 }
