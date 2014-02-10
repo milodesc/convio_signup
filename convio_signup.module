@@ -142,7 +142,7 @@ function create_or_update($new_email_address) {
     'email' => $new_email_address,
     'method' => 'createOrUpdate',
   );
-  $response = convio_api_request($params, 'constituent', 'server');
+  $response = convio_api_request('constituent', 'server', $params);
 
   $response_data = (!empty($response->data)) ? drupal_json_decode($response->data) : "";
   if (!empty($response->error)) {
