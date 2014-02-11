@@ -116,8 +116,23 @@ function convio_signup_block_form_validate($form, &$form_state) {
 function convio_signup_block_form_submit($form, &$form_state) {
   $new_email_address = $form_state['values']['constituent_email_address'];
   $submission_id = backup_email_address($new_email_address);
-  $response = create_or_update($new_email_address);
-  update_email_list_signups_record('constituent_record_id', $response['cons_id'], $submission_id);
+
+  $response = convio_api_createOrUpdate_request($new_email_address);
+  $response_data = (!empty($response->data)) ? drupal_json_decode($response->data) : "";
+  if (!empty($response->error)) {
+    $create_or_update_unsuccessful = 'There was an error. ';
+    if (!empty($response_data)) {
+      form_set_error('', $create_or_update_unsuccessful . $response_data['errorResponse']['message']);
+    }
+    else {
+      form_set_error('', $create_or_update_unsuccessful . "Check the API Base URL and Name of Organization fields on the Convio API Configuration screen.");
+    }
+    return;
+  }
+  else {
+    $data = $response_data['createOrUpdateConsResponse'];
+    update_email_list_signups_record('constituent_record_id', $data['cons_id'], $submission_id);
+  }
 }
 
 /**
@@ -131,37 +146,6 @@ function backup_email_address($email_address) {
       'submission_source_url' => current_path(),
     ))
     ->execute();
-}
-
-/**
- * Uses the CLO API to create a new constituent record.
- */
-function create_or_update($new_email_address) {
-
-  $params = array(
-    'email' => $new_email_address,
-    'method' => 'createOrUpdate',
-  );
-  $response = convio_api_request('constituent', 'server', $params);
-
-  $response_data = (!empty($response->data)) ? drupal_json_decode($response->data) : "";
-  if (!empty($response->error)) {
-    $create_or_update_unsuccessful = 'There was an error. ';
-    if (!empty($response_data)) {
-      form_set_error('', $create_or_update_unsuccessful . $response_data['errorResponse']['message']);
-    }
-    else {
-      form_set_error('', $create_or_update_unsuccessful . "Check the API Base URL and Name of Organization fields on the Convio API Configuration screen.");
-    }
-    return;
-  }
-  else {
-    return array(
-      "message" => $response_data['createOrUpdateConsResponse']['message'],
-      "cons_id" => $response_data['createOrUpdateConsResponse']['cons_id'],
-    );
-  }
-
 }
 
 /**
