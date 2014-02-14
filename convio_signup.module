@@ -105,7 +105,7 @@ function convio_signup_block_form_validate($form, &$form_state) {
   form_clear_error();
   $constituent_email_address = $form_state['values']['constituent_email_address'];
   if (empty($constituent_email_address) || !valid_email_address($constituent_email_address)) {
-    watchdog("convio_signup", "invalid email address submitted: '$constituent_email_address''");
+    watchdog("convio_signup", "Invalid email address submitted: '$constituent_email_address''");
     form_set_error('constituent_email_address', "Invalid email address.");
   }
 }
@@ -117,22 +117,15 @@ function convio_signup_block_form_submit($form, &$form_state) {
   $new_email_address = $form_state['values']['constituent_email_address'];
   $submission_id = backup_email_address($new_email_address);
 
-  $response = convio_api_createOrUpdate_request($new_email_address);
-  $response_data = (!empty($response->data)) ? drupal_json_decode($response->data) : "";
-  if (!empty($response->error)) {
-    $create_or_update_unsuccessful = 'There was an error. ';
-    if (!empty($response_data)) {
-      form_set_error('', $create_or_update_unsuccessful . $response_data['errorResponse']['message']);
-    }
-    else {
-      form_set_error('', $create_or_update_unsuccessful . "Check the API Base URL and Name of Organization fields on the Convio API Configuration screen.");
-    }
+  try {
+    $response = convio_api_createOrUpdate_request($new_email_address);
+  }
+  catch (Exception $e) {
+    form_set_error('', "There was an error submitting your email address!");
     return;
   }
-  else {
-    $data = $response_data['createOrUpdateConsResponse'];
-    update_email_list_signups_record('constituent_record_id', $data['cons_id'], $submission_id);
-  }
+
+  update_email_list_signups_record('constituent_record_id', $response['createOrUpdateConsResponse']['cons_id'], $submission_id);
 }
 
 /**
