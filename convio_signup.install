@@ -60,6 +60,8 @@ function convio_signup_uninstall() {
   variable_del('convio_signup_submission_success_message');
   variable_del('convio_signup_submit_button_text');
   variable_del('convio_signup_submit_button_radio');
+  variable_del('convio_signup_source');
+  variable_del('convio_signup_sub_source');
   remove_file_references('convio_signup_submit_button_image');
   remove_file_references('convio_signup_submit_button_image_rollover');
 }

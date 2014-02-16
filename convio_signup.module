@@ -131,8 +131,19 @@ function convio_signup_block_form_submit($form, &$form_state) {
   $new_email_address = $form_state['values']['constituent_email_address'];
   $submission_id = backup_email_address($new_email_address);
 
+  $optional_params = array();
+  $source = variable_get("convio_signup_source");
+  if (!empty($source)) {
+    $optional_params += array("source" => $source);
+  }
+
+  $sub_source = variable_get("convio_signup_sub_source");
+  if (!empty($sub_source)) {
+    $optional_params += array("sub_source" => $sub_source);
+  }
+
   try {
-    $response = convio_api_createOrUpdate_request($new_email_address);
+    $response = convio_api_createOrUpdate_request($new_email_address, $optional_params);
   }
   catch (Exception $e) {
     form_set_error('', "There was an error submitting your email address!");
@@ -272,6 +283,24 @@ function convio_signup_block_configure($delta = '') {
         '#maxlength' => 255,
       );
 
+      $form['convio_signup_source'] = array(
+        '#title' => t('Source:'),
+        '#description' => t('Text to associate with newly created constituent records to identify how or from where the record was added.'),
+        '#type' => 'textfield',
+        '#default_value' => variable_get('convio_signup_source'),
+        '#size' => 30,
+        '#maxlength' => 255,
+      );
+
+      $form['convio_signup_sub_source'] = array(
+        '#title' => t('Subsource:'),
+        '#description' => t('Further detail to save with the "source" information.'),
+        '#type' => 'textfield',
+        '#default_value' => variable_get('convio_signup_sub_source'),
+        '#size' => 30,
+        '#maxlength' => 255,
+      );
+
       $form['convio_signup_submit_button_radio'] = array(
         '#title' => t("Choose the type of submit button:"),
         '#type' => 'radios',
@@ -378,6 +407,8 @@ function convio_signup_block_save($delta = '', $edit = array()) {
       variable_set('convio_signup_submission_success_message', $edit['convio_signup_submission_success_message']);
       variable_set('convio_signup_submit_button_text', $edit['convio_signup_submit_button_text']);
       variable_set('convio_signup_submit_button_radio', $edit['convio_signup_submit_button_radio']);
+      variable_set('convio_signup_source', $edit['convio_signup_source']);
+      variable_set('convio_signup_sub_source', $edit['convio_signup_sub_source']);
 
       $block = block_load('convio_signup', $delta);
       manage_file('convio_signup_submit_button_image', $edit, $block);
