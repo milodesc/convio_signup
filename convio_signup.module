@@ -12,7 +12,7 @@ function convio_signup_help($path, $arg) {
     case 'admin/help#convio_signup':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t("This module makes a new block available for admins to include on other pages. The block contains a simple form which will add an email address to the constituent database in Blackbaud's Convio Luminate Online product.") . '</p>';
+      $output .= '<p>' . t("This module allows admins to create email signup form blocks to include on other pages. The blocks contain a simple form which will add an email address to the constituent database in Blackbaud's Convio Luminate Online product.") . '</p>';
       return $output;
   }
 }
@@ -24,9 +24,132 @@ function convio_signup_permission() {
   return array(
     'administer convio signup' => array(
       'title' => t('Administer Convio Signup'),
-      'description' => t('Perform administrative tasks on Convio Signup functionality.'),
+      'description' => t('Perform administrative tasks on Convio Signup forms.'),
     ),
   );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function convio_signup_block_info() {
+  $blocks = array();
+
+  $result = db_query('SELECT form_id, name, description from {convio_signup}');
+  foreach ($result as $item) {
+    $blocks[$item->form_id] = array(
+      'title' => $item->name,
+      'info' => $item->description,
+      'cache' => DRUPAL_CACHE_GLOBAL,
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure.
+ */
+function convio_signup_block_configure($delta = '') {
+
+  $result = db_query('SELECT * from {convio_signup} WHERE form_id = :delta', array(':delta' => $delta))->fetchObject();
+
+  if ($result) {
+    $form['overview'] = array(
+      '#markup' => t('Edit a Convio Signup Form block by changing the values below.'),
+    );
+
+    $form['name'] = array(
+      '#title' => t('Convio Signup Form name'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 512,
+      '#default_value' => $result->name,
+    );
+
+    $form['description'] = array(
+      '#title' => t('A brief description of the Convio Signup Form block'),
+      '#type' => 'textfield',
+      '#size' => 120,
+      '#maxlength' => 1024,
+      '#required' => TRUE,
+      '#default_value' => $result->description,
+    );
+
+    $form['email_field_placeholder'] = array(
+      '#title' => t('Email field placeholder'),
+      '#description' => t("The text that displays inside the email field before the user enters their email address."),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 512,
+      '#default_value' => $result->email_field_placeholder,
+    );
+
+    $form['helper_text'] = array(
+      '#title' => t('User Helper Text'),
+      '#description' => t('Text that instucts the user how to use the form.'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->helper_text,
+    );
+
+    $form['submission_success_msg'] = array(
+      '#title' => t('Email submission success message:'),
+      '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->submission_success_msg,
+    );
+
+    $form['source'] = array(
+      '#title' => t('Source:'),
+      '#description' => t('Text to associate with newly created constituent records to identify how or from where the record was added.'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->source,
+    );
+
+    $form['sub_source'] = array(
+      '#title' => t('Subsource:'),
+      '#description' => t('Further detail to save with the "source" information.'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->sub_source,
+    );
+
+    $form['submit_button_text'] = array(
+      '#title' => t("Submit button text"),
+      '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->submit_button_text,
+    );
+
+    return $form;
+  }
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function convio_signup_block_save($delta = '', $edit = array()) {
+  $data = array(
+    'form_id' => $delta,
+    'name' => ($edit['name']) ? ($edit['name']) : NULL,
+    'description' => ($edit['description']) ? ($edit['description']) : NULL,
+    'email_field_placeholder' => ($edit['email_field_placeholder']) ? $edit['email_field_placeholder'] : NULL,
+    'helper_text' => ($edit['helper_text']) ? $edit['helper_text'] : NULL,
+    'submission_success_msg' => ($edit['submission_success_msg']) ? $edit['submission_success_msg'] : NULL,
+    'source' => ($edit['source']) ? $edit['source'] : NULL,
+    'sub_source' => ($edit['sub_source']) ? $edit['sub_source'] : NULL,
+    'submit_button_text' => ($edit['submit_button_text']) ? $edit['submit_button_text'] : NULL,
+  );
+
+  drupal_write_record('convio_signup', $data, 'form_id');
 }
 
 /**
@@ -43,18 +166,18 @@ function convio_signup_menu() {
   );
 
   $items['admin/structure/convio_signup/add'] = array(
-    'title' => 'Convio Signup Form',
-    'description' => 'Add a Convio Signup Form',
+    'title' => 'Create Convio Signup Form',
+    'description' => 'Create a Convio Signup Form',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('convio_signup_add'),
     'access arguments' => array('administer convio signup'),
   );
 
-  $items['admin/structure/convio_signup/delete/%'] = array(
+  $items['admin/structure/convio_signup/%/delete'] = array(
     'title' => 'Delete a Convio Signup Form',
     'description' => 'Delete a Convio Signup Form',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('convio_signup_delete', 4),
+    'page arguments' => array('convio_signup_delete', 3),
     'access arguments' => array('administer convio signup'),
   );
 
@@ -71,7 +194,7 @@ function convio_signup_admin() {
   foreach ($results as $row) {
     $actions = array(
       'configure' => l(t('Configure'), sprintf('admin/structure/block/manage/convio_signup/%d/configure', $row->form_id)),
-      'delete'    => l(t('Delete'), sprintf('admin/structure/convio_signup/delete/%d', $row->form_id)),
+      'delete'    => l(t('Delete'), sprintf('admin/structure/convio_signup/%d/delete', $row->form_id)),
     );
 
     $rows[] = array(
@@ -93,18 +216,17 @@ function convio_signup_admin() {
     $table = theme('table', array('header' => $header, 'rows' => $rows));
   }
 
-  $add_button = l(t('Add a Convio Signup Form block'), 'admin/structure/convio_signup/add', array('attributes' => array('class' => array('button'))));
-  $api_config_button = l(t('Configure the connection to Convio'), 'admin/config/system/convio_api_config', array('attributes' => array('class' => array('button'))));
+  $create_form_button = l(t('Create a Convio Signup Form block'), 'admin/structure/convio_signup/add', array('attributes' => array('class' => array('button'))));
+  $convio_api_config_button = l(t('Configure the connection to Convio'), 'admin/config/system/convio_api_config', array('attributes' => array('class' => array('button'))));
 
-  return $table . $add_button . $api_config_button;
-
+  return $table . $create_form_button . $convio_api_config_button;
 }
 
 /**
  * A form for creating a new Convio Signup form.
  *
  * @param $form array
- *   he Convio Signup form
+ *   The Convio Signup form
  *
  * @param $form_state
  *   The Convio Signup form state
@@ -115,7 +237,7 @@ function convio_signup_admin() {
 function convio_signup_add($form, &$form_state) {
 
   $form['overview'] = array(
-    '#markup' => t('Add a new Convio Signup Form block by filling out and submitting the form below.'),
+    '#markup' => t('Create a new Convio Signup Form block by filling out and submitting the form below.'),
   );
 
   $form['name'] = array(
@@ -262,141 +384,6 @@ function convio_signup_remove($form_id) {
   }
 }
 
-/**
- * Implements hook_block_info().
- */
-function convio_signup_block_info() {
-  $blocks = array();
-
-  $result = db_query('SELECT form_id, name, description from {convio_signup}');
-  foreach ($result as $item) {
-    $blocks[$item->form_id] = array(
-      'title' => $item->name,
-      'info' => $item->description,
-      'cache' => DRUPAL_CACHE_GLOBAL,
-    );
-  }
-  return $blocks;
-}
-
-/**
- * Implements hook_block_configure.
- */
-function convio_signup_block_configure($delta = '') {
-
-  $result = db_query('SELECT * from {convio_signup} WHERE form_id = :delta', array(':delta' => $delta))->fetchObject();
-
-  if ($result) {
-    $form['overview'] = array(
-      '#markup' => t('Edit a Convio Signup Form block by changing the values below.'),
-    );
-
-    $form['name'] = array(
-      '#title' => t('Convio Signup Form name'),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 512,
-      '#default_value' => $result->name,
-    );
-
-    $form['description'] = array(
-      '#title' => t('A brief description of the Convio Signup Form block'),
-      '#type' => 'textfield',
-      '#size' => 120,
-      '#maxlength' => 1024,
-      '#required' => TRUE,
-      '#default_value' => $result->description,
-    );
-
-    $form['email_field_placeholder'] = array(
-      '#title' => t('Email field placeholder'),
-      '#description' => t("The text that displays inside the email field before the user enters their email address."),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 512,
-      '#default_value' => $result->email_field_placeholder,
-    );
-
-    $form['helper_text'] = array(
-      '#title' => t('User Helper Text'),
-      '#description' => t('Text that instucts the user how to use the form.'),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 255,
-      '#default_value' => $result->helper_text,
-    );
-
-    $form['submission_success_msg'] = array(
-      '#title' => t('Email submission success message:'),
-      '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 255,
-      '#default_value' => $result->submission_success_msg,
-    );
-
-    $form['source'] = array(
-      '#title' => t('Source:'),
-      '#description' => t('Text to associate with newly created constituent records to identify how or from where the record was added.'),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 255,
-      '#default_value' => $result->source,
-    );
-
-    $form['sub_source'] = array(
-      '#title' => t('Subsource:'),
-      '#description' => t('Further detail to save with the "source" information.'),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 255,
-      '#default_value' => $result->sub_source,
-    );
-
-    $form['submit_button_text'] = array(
-      '#title' => t("Submit button text"),
-      '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 255,
-      '#default_value' => $result->submit_button_text,
-    );
-
-    return $form;
-  }
-}
-
-/**
- * Implements hook_block_save().
- */
-function convio_signup_block_save($delta = '', $edit = array()) {
-  $data = array(
-    'form_id' => $delta,
-    'name' => ($edit['name']) ? ($edit['name']) : NULL,
-    'description' => ($edit['description']) ? ($edit['description']) : NULL,
-    'email_field_placeholder' => ($edit['email_field_placeholder']) ? $edit['email_field_placeholder'] : NULL,
-    'helper_text' => ($edit['helper_text']) ? $edit['helper_text'] : NULL,
-    'submission_success_msg' => ($edit['submission_success_msg']) ? $edit['submission_success_msg'] : NULL,
-    'source' => ($edit['source']) ? $edit['source'] : NULL,
-    'sub_source' => ($edit['sub_source']) ? $edit['sub_source'] : NULL,
-    'submit_button_text' => ($edit['submit_button_text']) ? $edit['submit_button_text'] : NULL,
-  );
-
-  drupal_write_record('convio_signup', $data, 'form_id');
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
  * Client-side functions
@@ -477,7 +464,7 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
 }
 
 /**
- * Validates user input.
+ * Validates user input after a submission of the email signup form.
  */
 function convio_signup_block_form_validate($form, &$form_state) {
 
@@ -501,7 +488,7 @@ function convio_signup_block_form_validate($form, &$form_state) {
 }
 
 /**
- * Adds email address to CLO database via form submission.
+ * Backs up the submitted email address to the Drupal database, and adds the address to the CLO database via the Convio API.
  */
 function convio_signup_block_form_submit($form, &$form_state) {
   $form_values = $form_state['values'];
@@ -529,7 +516,7 @@ function convio_signup_block_form_submit($form, &$form_state) {
 }
 
 /**
- * Backs up the email address and other data to the Drupal database.
+ * Backs up the submitted email address and other data to the Drupal database.
  */
 function backup_email_address($email_address) {
   return db_insert('email_list_signups')
@@ -548,8 +535,7 @@ function convio_signup_form_callback($form, $form_state) {
   }
   else {
     $commands = array();
-    $status_message = variable_get('convio_signup_submission_success_message');
-    $status_message = (empty($status_message)) ? "Thanks! We'll be in touch soon!" : $status_message;
+    $status_message = "Thanks! We'll be in touch soon!";
     $response = array(
       '#markup' => $status_message,
     );
