@@ -48,20 +48,66 @@ function convio_signup_schema() {
     'primary key' => array('submission_id'),
   );
 
+  $schema['convio_signup'] = array(
+    'description' => 'The convio_signup table stores information about Convio signup forms.',
+    'fields' => array(
+      'form_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 256,
+        'not null' => FALSE,
+        'description' => 'The name of the form block.',
+      ),
+      'description' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => FALSE,
+        'description' => 'The name of the form block.',
+      ),
+      'email_field_placeholder' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => FALSE,
+        'description' => 'The text that displays inside the email field before the user enters their email address.',
+      ),
+      'helper_text' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => FALSE,
+        'description' => 'Text that instucts the user how to use the form.',
+      ),
+      'submission_success_msg' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => FALSE,
+        'description' => 'Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"',
+      ),
+      'source' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => FALSE,
+        'description' => 'Text to associate with newly created constituent records to identify how or from where the record was added.',
+      ),
+      'sub_source' => array(
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => FALSE,
+        'description' => 'Further detail to save with the "source" information.',
+      ),
+      'submit_button_text' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+        'description' => 'Text for submit button',
+      ),
+    ),
+    'primary key' => array('form_id'),
+  );
+
   return $schema;
 }
 
-/**
- * Implements hook_uninstall().
- */
-function convio_signup_uninstall() {
-  variable_del('convio_signup_default_placeholder');
-  variable_del('convio_signup_default_helper_text');
-  variable_del('convio_signup_submission_success_message');
-  variable_del('convio_signup_submit_button_text');
-  variable_del('convio_signup_submit_button_radio');
-  variable_del('convio_signup_source');
-  variable_del('convio_signup_sub_source');
-  remove_file_references('convio_signup_submit_button_image');
-  remove_file_references('convio_signup_submit_button_image_rollover');
-}

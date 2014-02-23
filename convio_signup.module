@@ -4,217 +4,6 @@
  * Custom functionality to add email addresses to CLO
  */
 
-module_load_include('inc', 'convio_signup');
-
-/**
- * Implements hook_block_info().
- */
-function convio_signup_block_info() {
-  $blocks['Convio Email Signup'] = array(
-    'info' => t('Convio Email Signup'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-  return $blocks;
-}
-
-/**
- * Implements hook_block_view().
- */
-function convio_signup_block_view($delta = '') {
-  $block = array();
-  switch ($delta) {
-    case 'Convio Email Signup':
-      $block['subject'] = NULL;
-      $block['content'] = drupal_get_form('convio_signup_block_form');
-      break;
-  }
-  return $block;
-}
-
-/**
- * Builds email submission form.
- */
-function convio_signup_block_form($form, &$form_state) {
-  $form = array();
-
-  $form['constituent_email_address'] = array(
-    '#type' => 'textfield',
-    '#description' => variable_get('convio_signup_default_helper_text'),
-    '#required' => TRUE,
-    '#maxlength' => 254,
-    '#size' => 14,
-  );
-
-  $placeholder_txt = variable_get('convio_signup_default_placeholder');
-  if (!empty($placeholder_txt)) {
-    $form['constituent_email_address']['#attributes'] = array(
-      'placeholder' => variable_get('convio_signup_default_placeholder'),
-    );
-  }
-
-  $submit_button_text = variable_get('convio_signup_submit_button_text');
-  $submit_button_image_fid = variable_get('convio_signup_submit_button_image');
-  $submit_button_image_rollover_fid = variable_get('convio_signup_submit_button_image_rollover');
-  if ((variable_get('convio_signup_submit_button_radio', 0) === 0) || empty($submit_button_image_fid)) {
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => empty($submit_button_text) ? "Submit" : $submit_button_text,
-    );
-  }
-  else {
-    $form['submit'] = array(
-      '#type' => 'image_button',
-      '#src' => file_create_url(file_load($submit_button_image_fid)->uri),
-    );
-    if (!empty($submit_button_image_rollover_fid)) {
-      file_load($submit_button_image_fid)->uri;
-      $form['submit']['#attributes'] = array(
-        'onmouseover' => "this.src='" . file_create_url(file_load($submit_button_image_rollover_fid)->uri) . "'",
-        'onmouseout' => "this.src='" . file_create_url(file_load($submit_button_image_fid)->uri) . "'",
-      );
-    }
-  }
-  $form['submit']['#ajax'] = array(
-    "callback" => "convio_signup_form_callback",
-    "wrapper" => "convio_signup_ajax_wrapper",
-    "effect" => "fade",
-    "speed" => "slow",
-    "progress" => array('type' => 'none'),
-  );
-
-  $form['wrapper'] = array(
-    '#type' => 'markup',
-    '#prefix' => '<div id="convio_signup_ajax_wrapper">',
-    '#suffix' => '</div>',
-  );
-
-  $form['#attached']['js'] = array(
-    array(
-      'type'  => 'file',
-      'data' => drupal_get_path('module', 'convio_signup') . '/js/resultsReturned.js',
-    ),
-  );
-
-  return $form;
-}
-
-/**
- * Validates user input.
- */
-function convio_signup_block_form_validate($form, &$form_state) {
-  form_clear_error();
-
-  $constituent_email_address = $form_state['values']['constituent_email_address'];
-  if (empty($constituent_email_address)) {
-    watchdog("convio_signup", "Blank email address submitted.");
-    form_set_error('constituent_email_address', "Please enter an email address.");
-    return;
-  }
-
-  try {
-    $is_valid_email_response = convio_api_isEmailValid_request($constituent_email_address);
-    if ($is_valid_email_response["isEmailValidResponse"]["valid"] === "false") {
-      watchdog("convio_signup", "Invalid email address submitted: '$constituent_email_address''");
-      form_set_error('constituent_email_address', "The email address is invalid.");
-    }
-  }
-  catch (Exception $e) {
-    form_set_error('', $e->getMessage());
-    return;
-  }
-}
-
-/**
- * Adds email address to CLO database via form submission.
- */
-function convio_signup_block_form_submit($form, &$form_state) {
-  $new_email_address = $form_state['values']['constituent_email_address'];
-  $submission_id = backup_email_address($new_email_address);
-
-  $optional_params = array();
-  $source = variable_get("convio_signup_source");
-  if (!empty($source)) {
-    $optional_params += array("source" => $source);
-  }
-
-  $sub_source = variable_get("convio_signup_sub_source");
-  if (!empty($sub_source)) {
-    $optional_params += array("sub_source" => $sub_source);
-  }
-
-  try {
-    $response = convio_api_createOrUpdate_request($new_email_address, $optional_params);
-  }
-  catch (Exception $e) {
-    form_set_error('', "There was an error submitting your email address!");
-    return;
-  }
-
-  update_email_list_signups_record('constituent_record_id', $response['createOrUpdateConsResponse']['cons_id'], $submission_id);
-}
-
-/**
- * Backs up the email address and other data to the Drupal database.
- */
-function backup_email_address($email_address) {
-  return db_insert('email_list_signups')
-    ->fields(array(
-      'email_address_submitted' => $email_address,
-      'submission_time' => date("Y-m-d H:i:s", REQUEST_TIME),
-      'submission_source_url' => current_path(),
-    ))
-    ->execute();
-}
-
-/**
- * Store the constituent record ID which was created by CLO in the Drupal database.
- */
-function update_email_list_signups_record($field, $value, $submission_id) {
-  return db_update('email_list_signups')
-    ->fields(array(
-      $field => $value,
-    ))
-    ->condition('submission_id', $submission_id)
-    ->execute();
-}
-
-function convio_signup_form_callback($form, $form_state) {
-
-  if (form_get_errors()) {
-    return "<div id='convio_signup_ajax_wrapper'></div>";
-  }
-  else {
-    $commands = array();
-    $status_message = variable_get('convio_signup_submission_success_message');
-    $status_message = (empty($status_message)) ? "Thanks! We'll be in touch soon!" : $status_message;
-    $response = array(
-      '#markup' => $status_message,
-    );
-    $commands[] = ajax_command_html('#convio_signup_ajax_wrapper', render($response));
-    $commands[] = array('command' => 'fadeAwayStatusMessage');
-
-    return array(
-      '#type' => 'ajax',
-      '#commands' => $commands,
-    );
-  }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Implements hook_help().
  */
@@ -241,158 +30,339 @@ function convio_signup_permission() {
 }
 
 /**
- * Implements hook_block_configure.
+ * Implements hook_menu().
  */
-function convio_signup_block_configure($delta = '') {
-  $form = array();
+function convio_signup_menu() {
+  $items = array();
 
-  switch ($delta) {
-    case 'Convio Email Signup':
+  $items['admin/structure/convio_signup'] = array(
+    'title' => 'Convio Signup Forms Configuration',
+    'description' => 'View, create, edit and delete Convio Signup Forms',
+    'page callback' => 'convio_signup_admin',
+    'access arguments' => array('administer convio signup'),
+  );
 
-      $form['overview'] = array(
-        '#markup' => t('This interface allows administrators to manage general Convio Email settings.'),
-      );
+  $items['admin/structure/convio_signup/add'] = array(
+    'title' => 'Convio Signup Form',
+    'description' => 'Add a Convio Signup Form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('convio_signup_add'),
+    'access arguments' => array('administer convio signup'),
+  );
 
-      $form['convio_signup_clo_email_field_placeholder'] = array(
-        '#title' => t('Email field placeholder'),
-        '#description' => t("The text that displays inside the email field before the user enters their email address."),
-        '#type' => 'textfield',
-        '#default_value' => variable_get('convio_signup_default_placeholder'),
-        '#size' => 30,
-        '#maxlength' => 512,
-      );
+  $items['admin/structure/convio_signup/delete/%'] = array(
+    'title' => 'Delete a Convio Signup Form',
+    'description' => 'Delete a Convio Signup Form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('convio_signup_delete', 4),
+    'access arguments' => array('administer convio signup'),
+  );
 
-      $form['convio_signup_default_helper_text'] = array(
-        '#title' => t('User Helper Text'),
-        '#description' => t('Text that instucts the user how to use the form.'),
-        '#type' => 'textfield',
-        '#default_value' => variable_get('convio_signup_default_helper_text'),
-        '#size' => 30,
-        '#maxlength' => 255,
-      );
+  return $items;
+}
 
-      $form['convio_signup_submission_success_message'] = array(
-        '#title' => t('Email submission success message:'),
-        '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
-        '#type' => 'textfield',
-        '#default_value' => variable_get('convio_signup_submission_success_message'),
-        '#attributes' => array(
-          'placeholder' => "Thanks! We'll be in touch soon!",
-        ),
-        '#size' => 30,
-        '#maxlength' => 255,
-      );
+/**
+ * Prepares a table containing the details and actions of all Convio Signup forms.
+ */
+function convio_signup_admin() {
 
-      $form['convio_signup_source'] = array(
-        '#title' => t('Source:'),
-        '#description' => t('Text to associate with newly created constituent records to identify how or from where the record was added.'),
-        '#type' => 'textfield',
-        '#default_value' => variable_get('convio_signup_source'),
-        '#size' => 30,
-        '#maxlength' => 255,
-      );
+  $results = db_query("SELECT form_id, name, description FROM {convio_signup}");
 
-      $form['convio_signup_sub_source'] = array(
-        '#title' => t('Subsource:'),
-        '#description' => t('Further detail to save with the "source" information.'),
-        '#type' => 'textfield',
-        '#default_value' => variable_get('convio_signup_sub_source'),
-        '#size' => 30,
-        '#maxlength' => 255,
-      );
+  foreach ($results as $row) {
+    $actions = array(
+      'configure' => l(t('Configure'), sprintf('admin/structure/block/manage/convio_signup/%d/configure', $row->form_id)),
+      'delete'    => l(t('Delete'), sprintf('admin/structure/convio_signup/delete/%d', $row->form_id)),
+    );
 
-      $form['convio_signup_submit_button_radio'] = array(
-        '#title' => t("Choose the type of submit button:"),
-        '#type' => 'radios',
-        '#options' => array(
-          t('Browser default submit button with custom text'),
-          t('User supplied image and optional rollover'),
-        ),
-        '#default_value' => variable_get('convio_signup_submit_button_radio', 0),
-      );
-
-      $form['convio_signup_submit_button_text'] = array(
-        '#title' => t("Submit button text"),
-        '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
-        '#type' => 'textfield',
-        '#default_value' => variable_get('convio_signup_submit_button_text'),
-        '#size' => 30,
-        '#maxlength' => 255,
-        '#attributes' => array(
-          'placeholder' => 'Submit',
-        ),
-        '#states' => array(
-          'enabled' => array(
-            ':input[name="convio_signup_submit_button_radio"]' => array('value' => 0),
-          ),
-        ),
-      );
-
-      $image_extensions = "png gif jpg gif";
-      $form['convio_signup_submit_button_image'] = array(
-        '#title' => t("Submit button image"),
-        '#description' => t("Supply an image that will be used as the submit button for the form. Extensions allowed: $image_extensions."),
-        '#type' => 'managed_file',
-        '#default_value' => variable_get('convio_signup_submit_button_image'),
-        '#progress_indicator' => "bar",
-        '#upload_location' => "public://img/convio_signup",
-        '#upload_validators' => array(
-          'file_validate_extentions' => $image_extensions,
-        ),
-        '#states' => array(
-          'enabled' => array(
-            ':input[name="convio_signup_submit_button_radio"]' => array('value' => 1),
-          ),
-        ),
-      );
-
-      $form['convio_signup_submit_button_image_rollover'] = array(
-        '#title' => t("Submit button rollover image"),
-        '#description' => t("Supply a URL to an image that will be used as the rollover submit button for the form. Extensions allowed: $image_extensions."),
-        '#type' => 'managed_file',
-        '#default_value' => variable_get('convio_signup_submit_button_image_rollover'),
-        '#progress_indicator' => "bar",
-        '#upload_location' => "public://img/convio_signup",
-        '#upload_validators' => array(
-          'file_validate_extentions' => $image_extensions,
-        ),
-        '#states' => array(
-          'enabled' => array(
-            ':input[name="convio_signup_submit_button_radio"]' => array('value' => 1),
-          ),
-        ),
-      );
-
-      break;
+    $rows[] = array(
+      'id'   => $row->form_id,
+      'name' => $row->name,
+      'description' => $row->description,
+      'ops'  => implode(' | ', $actions),
+    );
   }
+
+  $table = '';
+  if (!empty($rows)) {
+    $header = array(
+      'id'   => t('Block ID'),
+      'name' => t('Name'),
+      'desc' => t('Description'),
+      'ops'  => t('Operations'),
+    );
+    $table = theme('table', array('header' => $header, 'rows' => $rows));
+  }
+
+  $add_button = l(t('Add a Convio Signup Form block'), 'admin/structure/convio_signup/add', array('attributes' => array('class' => array('button'))));
+  $api_config_button = l(t('Configure the connection to Convio'), 'admin/config/system/convio_api_config', array('attributes' => array('class' => array('button'))));
+
+  return $table . $add_button . $api_config_button;
+
+}
+
+/**
+ * A form for creating a new Convio Signup form.
+ *
+ * @param $form array
+ *   he Convio Signup form
+ *
+ * @param $form_state
+ *   The Convio Signup form state
+ *
+ * @return mixed
+ *   A form used to create a new Convio Signup form.
+ */
+function convio_signup_add($form, &$form_state) {
+
+  $form['overview'] = array(
+    '#markup' => t('Add a new Convio Signup Form block by filling out and submitting the form below.'),
+  );
+
+  $form['name'] = array(
+    '#title' => t('Convio Signup Form name'),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 512,
+  );
+
+  $form['description'] = array(
+    '#title' => t('A brief description of the Convio Signup Form block'),
+    '#type' => 'textfield',
+    '#size' => 120,
+    '#maxlength' => 1024,
+    '#required' => TRUE
+  );
+
+  $form['email_field_placeholder'] = array(
+    '#title' => t('Email field placeholder'),
+    '#description' => t("The text that displays inside the email field before the user enters their email address."),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 512,
+  );
+
+  $form['helper_text'] = array(
+    '#title' => t('User Helper Text'),
+    '#description' => t('Text that instucts the user how to use the form.'),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 255,
+  );
+
+  $form['submission_success_msg'] = array(
+    '#title' => t('Email submission success message:'),
+    '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
+    '#type' => 'textfield',
+    '#attributes' => array(
+      'placeholder' => "Thanks! We'll be in touch soon!",
+    ),
+    '#size' => 30,
+    '#maxlength' => 255,
+  );
+
+  $form['source'] = array(
+    '#title' => t('Source:'),
+    '#description' => t('Text to associate with newly created constituent records to identify how or from where the record was added.'),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 255,
+  );
+
+  $form['sub_source'] = array(
+    '#title' => t('Subsource:'),
+    '#description' => t('Further detail to save with the "source" information.'),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 255,
+  );
+
+  $form['submit_button_text'] = array(
+    '#title' => t("Submit button text"),
+    '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 255,
+    '#attributes' => array(
+      'placeholder' => 'Submit',
+    ),
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  $form['actions']['cancel'] = array(
+    '#markup' => l(t('Cancel'), 'admin/structure/convio_signup'),
+  );
 
   return $form;
 }
 
+function convio_signup_add_submit($form, &$form_state) {
+  $values = $form_state['values'];
 
-/**
- * Implements hook_form_FORM_ID_alter().
- *
- * Adds validation of block configuration custom fields.
- */
-function convio_signup_form_block_admin_configure_alter(&$form, &$form_state, $form_id) {
-  if ($form['module']['#value'] == 'convio_signup') {
-    $form['#validate'][] = 'convio_signup_admin_settings_form_validate';
+  $data = array(
+    'name' => ($values['name']) ? ($values['name']) : NULL,
+    'description' => ($values['description']) ? ($values['description']) : NULL,
+    'email_field_placeholder' => ($values['email_field_placeholder']) ? ($values['email_field_placeholder']) : NULL,
+    'helper_text' => ($values['helper_text']) ? ($values['helper_text']) : NULL,
+    'submission_success_msg' => ($values['submission_success_msg']) ? $values['submission_success_msg'] : NULL,
+    'source' => ($values['source']) ? $values['source'] : NULL,
+    'sub_source' => ($values['sub_source']) ? $values['sub_source'] : NULL,
+    'submit_button_text' => ($values['submit_button_text']) ? $values['submit_button_text'] : NULL,
+  );
+
+  $result = drupal_write_record('convio_signup', $data);
+
+  if ($result) {
+    drupal_set_message('Your signup form has been created');
+  }
+  else {
+    drupal_set_message('There was an error creating your signup form', 'error');
+  }
+
+  drupal_goto('admin/structure/convio_signup');
+}
+
+function convio_signup_delete($form, &$form_state, $form_id) {
+  $result = db_query("SELECT name, description FROM {convio_signup} where form_id = :form_id", array(':form_id' => $form_id))->fetchObject();
+  $form['warning'] = array(
+    '#markup' => '<h2>You are about to delete the following Convio Signup Form:' . $result->description . '. This cannot be undone!</h2>'
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete'),
+  );
+  $form['actions']['cancel'] = array(
+    '#markup' => l(t('Cancel'), 'admin/structure/convio_signup'),
+  );
+  return $form;
+}
+
+function convio_signup_delete_submit($form, &$form_state) {
+  $form_id = $form_state['build_info']['args'][0];
+  convio_signup_remove($form_id);
+  drupal_goto('admin/structure/convio_signup');
+}
+
+function convio_signup_remove($form_id) {
+  $res = db_query('DELETE from {convio_signup} WHERE form_id = :form_id', array(':form_id' => $form_id));
+  if ($res) {
+    drupal_set_message('The Convio signup form has been deleted.');
+  }
+  else {
+    drupal_set_message('There was an error deleting the signup form.', 'error');
+  }
+  $res = db_query("DELETE from {block} WHERE module = 'convio_signup' AND delta = :form_id", array(':form_id' => $form_id));
+  if (!$res) {
+    drupal_set_message('There was an error deleting the form from the blocks table.', 'error');
   }
 }
 
 /**
- * Validates Convio Signup admin configuration form.
+ * Implements hook_block_info().
  */
-function convio_signup_admin_settings_form_validate($form, &$form_state) {
-  $delta = $form['delta']['#value'];
+function convio_signup_block_info() {
+  $blocks = array();
 
-  switch ($delta) {
-    case 'Convio Email Signup':
-      if (($form_state['values']['convio_signup_submit_button_radio'] == 1) && empty($form_state['values']['convio_signup_submit_button_image'])) {
-        form_set_error('convio_signup_submit_button_image', t('Please supply a submit button image!'));
-      }
-      break;
+  $result = db_query('SELECT form_id, name, description from {convio_signup}');
+  foreach ($result as $item) {
+    $blocks[$item->form_id] = array(
+      'title' => $item->name,
+      'info' => $item->description,
+      'cache' => DRUPAL_CACHE_GLOBAL,
+    );
+  }
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure.
+ */
+function convio_signup_block_configure($delta = '') {
+
+  $result = db_query('SELECT * from {convio_signup} WHERE form_id = :delta', array(':delta' => $delta))->fetchObject();
+
+  if ($result) {
+    $form['overview'] = array(
+      '#markup' => t('Edit a Convio Signup Form block by changing the values below.'),
+    );
+
+    $form['name'] = array(
+      '#title' => t('Convio Signup Form name'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 512,
+      '#default_value' => $result->name,
+    );
+
+    $form['description'] = array(
+      '#title' => t('A brief description of the Convio Signup Form block'),
+      '#type' => 'textfield',
+      '#size' => 120,
+      '#maxlength' => 1024,
+      '#required' => TRUE,
+      '#default_value' => $result->description,
+    );
+
+    $form['email_field_placeholder'] = array(
+      '#title' => t('Email field placeholder'),
+      '#description' => t("The text that displays inside the email field before the user enters their email address."),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 512,
+      '#default_value' => $result->email_field_placeholder,
+    );
+
+    $form['helper_text'] = array(
+      '#title' => t('User Helper Text'),
+      '#description' => t('Text that instucts the user how to use the form.'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->helper_text,
+    );
+
+    $form['submission_success_msg'] = array(
+      '#title' => t('Email submission success message:'),
+      '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->submission_success_msg,
+    );
+
+    $form['source'] = array(
+      '#title' => t('Source:'),
+      '#description' => t('Text to associate with newly created constituent records to identify how or from where the record was added.'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->source,
+    );
+
+    $form['sub_source'] = array(
+      '#title' => t('Subsource:'),
+      '#description' => t('Further detail to save with the "source" information.'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->sub_source,
+    );
+
+    $form['submit_button_text'] = array(
+      '#title' => t("Submit button text"),
+      '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->submit_button_text,
+    );
+
+    return $form;
   }
 }
 
@@ -400,38 +370,207 @@ function convio_signup_admin_settings_form_validate($form, &$form_state) {
  * Implements hook_block_save().
  */
 function convio_signup_block_save($delta = '', $edit = array()) {
-  switch ($delta) {
-    case 'Convio Email Signup':
-      variable_set('convio_signup_default_placeholder', $edit['convio_signup_clo_email_field_placeholder']);
-      variable_set('convio_signup_default_helper_text', $edit['convio_signup_default_helper_text']);
-      variable_set('convio_signup_submission_success_message', $edit['convio_signup_submission_success_message']);
-      variable_set('convio_signup_submit_button_text', $edit['convio_signup_submit_button_text']);
-      variable_set('convio_signup_submit_button_radio', $edit['convio_signup_submit_button_radio']);
-      variable_set('convio_signup_source', $edit['convio_signup_source']);
-      variable_set('convio_signup_sub_source', $edit['convio_signup_sub_source']);
+  $data = array(
+    'form_id' => $delta,
+    'name' => ($edit['name']) ? ($edit['name']) : NULL,
+    'description' => ($edit['description']) ? ($edit['description']) : NULL,
+    'email_field_placeholder' => ($edit['email_field_placeholder']) ? $edit['email_field_placeholder'] : NULL,
+    'helper_text' => ($edit['helper_text']) ? $edit['helper_text'] : NULL,
+    'submission_success_msg' => ($edit['submission_success_msg']) ? $edit['submission_success_msg'] : NULL,
+    'source' => ($edit['source']) ? $edit['source'] : NULL,
+    'sub_source' => ($edit['sub_source']) ? $edit['sub_source'] : NULL,
+    'submit_button_text' => ($edit['submit_button_text']) ? $edit['submit_button_text'] : NULL,
+  );
 
-      $block = block_load('convio_signup', $delta);
-      manage_file('convio_signup_submit_button_image', $edit, $block);
-      manage_file('convio_signup_submit_button_image_rollover', $edit, $block);
+  drupal_write_record('convio_signup', $data, 'form_id');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * Client-side functions
+ */
+
+/**
+ * Implements hook_block_view().
+ */
+function convio_signup_block_view($delta = '') {
+  $result = db_query("SELECT * from {convio_signup} WHERE form_id = :delta", array(':delta' => $delta))->fetchObject();
+  if ($result) {
+    return array(
+      'content' => drupal_get_form('convio_signup_block_form', $result)
+    );
   }
 }
 
-function manage_file($file_form_name, $edit, $block) {
+/**
+ * Builds email submission form.
+ */
+function convio_signup_block_form($form, &$form_state, $form_data) {
 
-  if (!empty($edit[$file_form_name])) {
-    // The admin field was not empty, save the image.
-    $file = file_load($edit[$file_form_name]);
-    $file->status = FILE_STATUS_PERMANENT;
-    file_save($file);
-    variable_set($file_form_name, $file->fid);
+  $form['#attributes']['class'][] = 'convio-signup-form';
+  $form['constituent_email_address'] = array(
+    '#type' => 'textfield',
+    '#description' => $form_data->helper_text,
+    '#required' => TRUE,
+    '#maxlength' => 254,
+    '#size' => 14,
+  );
 
-    $references = file_usage_list($file);
-    if (empty($references) || empty($references['convio_signup']['block'][$block->bid]) || $references['convio_signup']['block'][$block->bid] < 1) {
-      file_usage_add($file, 'convio_signup', 'block', $block->bid);
+  $placeholder_txt = $form_data->email_field_placeholder;
+  if (!empty($placeholder_txt)) {
+    $form['constituent_email_address']['#attributes']['placeholder'] = $placeholder_txt;
+  }
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => ($form_data->submit_button_text) ? check_plain($form_data->submit_button_text) : 'Submit',
+  );
+
+  $form['submit']['#ajax'] = array(
+    "callback" => "convio_signup_form_callback",
+    "wrapper" => "convio_signup_ajax_wrapper",
+    "effect" => "fade",
+    "speed" => "slow",
+    "progress" => array('type' => 'none'),
+  );
+
+  $form['wrapper'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<div id="convio_signup_ajax_wrapper">',
+    '#suffix' => '</div>',
+  );
+
+  $form['#attached']['js'] = array(
+    array(
+      'type'  => 'file',
+      'data' => drupal_get_path('module', 'convio_signup') . '/js/resultsReturned.js',
+    ),
+  );
+
+  if (!empty($form_data->source)) {
+    $form['source'] = array(
+      '#type' => 'value',
+      '#value' => $form_data->source,
+    );
+  }
+
+  if (!empty($form_data->sub_source)) {
+    $form['sub_source'] = array(
+      '#type' => 'value',
+      '#value' => $form_data->sub_source,
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Validates user input.
+ */
+function convio_signup_block_form_validate($form, &$form_state) {
+
+  $constituent_email_address = $form_state['values']['constituent_email_address'];
+  if (empty($constituent_email_address)) {
+    watchdog("convio_signup", "Blank email address submitted.");
+    form_set_error('constituent_email_address', "Please enter an email address.");
+    return;
+  }
+
+  try {
+    $is_valid_email_response = convio_api_isEmailValid_request($constituent_email_address);
+    if ($is_valid_email_response["isEmailValidResponse"]["valid"] === "false") {
+      watchdog("convio_signup", "Invalid email address submitted: '$constituent_email_address''");
+      form_set_error('constituent_email_address', "The email address is invalid.");
     }
   }
-  else {
-    // The admin field was left blank, remove the references to the old image and delete  .
-    remove_file_references($file_form_name);
+  catch (Exception $e) {
+    form_set_error('', $e->getMessage());
   }
+}
+
+/**
+ * Adds email address to CLO database via form submission.
+ */
+function convio_signup_block_form_submit($form, &$form_state) {
+  $form_values = $form_state['values'];
+  $new_email_address = $form_values['constituent_email_address'];
+  $submission_id = backup_email_address($new_email_address);
+
+  $optional_params = array();
+  if (!empty($form_values['source'])) {
+    $optional_params += array("source" => $form_values['source']);
+  }
+
+  if (!empty($form_values['sub_source'])) {
+    $optional_params += array("sub_source" => $form_values['sub_source']);
+  }
+
+  try {
+    $response = convio_api_createOrUpdate_request($new_email_address, $optional_params);
+  }
+  catch (Exception $e) {
+    form_set_error('', "There was an error submitting your email address!");
+    return;
+  }
+
+  update_email_list_signups_record('constituent_record_id', $response['createOrUpdateConsResponse']['cons_id'], $submission_id);
+}
+
+/**
+ * Backs up the email address and other data to the Drupal database.
+ */
+function backup_email_address($email_address) {
+  return db_insert('email_list_signups')
+    ->fields(array(
+      'email_address_submitted' => $email_address,
+      'submission_time' => date("Y-m-d H:i:s", REQUEST_TIME),
+      'submission_source_url' => current_path(),
+    ))
+    ->execute();
+}
+
+function convio_signup_form_callback($form, $form_state) {
+
+  if (form_get_errors()) {
+    return "<div id='convio_signup_ajax_wrapper'></div>";
+  }
+  else {
+    $commands = array();
+    $status_message = variable_get('convio_signup_submission_success_message');
+    $status_message = (empty($status_message)) ? "Thanks! We'll be in touch soon!" : $status_message;
+    $response = array(
+      '#markup' => $status_message,
+    );
+    $commands[] = ajax_command_html('#convio_signup_ajax_wrapper', render($response));
+    $commands[] = array('command' => 'fadeAwayStatusMessage');
+
+    return array(
+      '#type' => 'ajax',
+      '#commands' => $commands,
+    );
+  }
+}
+
+/**
+ * Store the constituent record ID which was created by CLO in the Drupal database.
+ */
+function update_email_list_signups_record($field, $value, $submission_id) {
+  return db_update('email_list_signups')
+    ->fields(array(
+      $field => $value,
+    ))
+    ->condition('submission_id', $submission_id)
+    ->execute();
 }

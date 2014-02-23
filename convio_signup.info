@@ -4,4 +4,4 @@ core = 7.x
 files[] = convio_signup.module
 dependencies[] = block
 dependencies[] = convio_api
-configure = admin/structure/block/manage/convio_signup/Convio Email Signup/configure
+configure = admin/structure/convio_signup
