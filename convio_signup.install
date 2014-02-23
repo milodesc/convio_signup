@@ -56,17 +56,17 @@ function convio_signup_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'name' => array(
+      'title' => array(
         'type' => 'varchar',
         'length' => 256,
         'not null' => FALSE,
-        'description' => 'The name of the form block.',
+        'description' => 'The title of the form block.',
       ),
       'description' => array(
         'type' => 'varchar',
         'length' => 1024,
         'not null' => FALSE,
-        'description' => 'The name of the form block.',
+        'description' => 'The title of the form block.',
       ),
       'email_field_placeholder' => array(
         'type' => 'varchar',

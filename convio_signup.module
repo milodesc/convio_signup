@@ -35,10 +35,10 @@ function convio_signup_permission() {
 function convio_signup_block_info() {
   $blocks = array();
 
-  $result = db_query('SELECT form_id, name, description from {convio_signup}');
+  $result = db_query('SELECT form_id, title, description from {convio_signup}');
   foreach ($result as $item) {
     $blocks[$item->form_id] = array(
-      'title' => $item->name,
+      'title' => $item->title,
       'info' => $item->description,
       'cache' => DRUPAL_CACHE_GLOBAL,
     );
@@ -58,12 +58,12 @@ function convio_signup_block_configure($delta = '') {
       '#markup' => t('Edit a Convio Signup Form block by changing the values below.'),
     );
 
-    $form['name'] = array(
+    $form['title'] = array(
       '#title' => t('Convio Signup Form name'),
       '#type' => 'textfield',
       '#size' => 30,
       '#maxlength' => 512,
-      '#default_value' => $result->name,
+      '#default_value' => $result->title,
     );
 
     $form['description'] = array(
@@ -139,7 +139,7 @@ function convio_signup_block_configure($delta = '') {
 function convio_signup_block_save($delta = '', $edit = array()) {
   $data = array(
     'form_id' => $delta,
-    'name' => ($edit['name']) ? ($edit['name']) : NULL,
+    'title' => ($edit['title']) ? ($edit['title']) : NULL,
     'description' => ($edit['description']) ? ($edit['description']) : NULL,
     'email_field_placeholder' => ($edit['email_field_placeholder']) ? $edit['email_field_placeholder'] : NULL,
     'helper_text' => ($edit['helper_text']) ? $edit['helper_text'] : NULL,
@@ -189,7 +189,7 @@ function convio_signup_menu() {
  */
 function convio_signup_admin() {
 
-  $results = db_query("SELECT form_id, name, description FROM {convio_signup}");
+  $results = db_query("SELECT form_id, title, description FROM {convio_signup}");
 
   foreach ($results as $row) {
     $actions = array(
@@ -199,7 +199,7 @@ function convio_signup_admin() {
 
     $rows[] = array(
       'id'   => $row->form_id,
-      'name' => $row->name,
+      'title' => $row->title,
       'description' => $row->description,
       'ops'  => implode(' | ', $actions),
     );
@@ -209,7 +209,7 @@ function convio_signup_admin() {
   if (!empty($rows)) {
     $header = array(
       'id'   => t('Block ID'),
-      'name' => t('Name'),
+      'title' => t('title'),
       'desc' => t('Description'),
       'ops'  => t('Operations'),
     );
@@ -240,7 +240,7 @@ function convio_signup_add($form, &$form_state) {
     '#markup' => t('Create a new Convio Signup Form block by filling out and submitting the form below.'),
   );
 
-  $form['name'] = array(
+  $form['title'] = array(
     '#title' => t('Convio Signup Form name'),
     '#type' => 'textfield',
     '#size' => 30,
@@ -325,7 +325,7 @@ function convio_signup_add_submit($form, &$form_state) {
   $values = $form_state['values'];
 
   $data = array(
-    'name' => ($values['name']) ? ($values['name']) : NULL,
+    'title' => ($values['title']) ? ($values['title']) : NULL,
     'description' => ($values['description']) ? ($values['description']) : NULL,
     'email_field_placeholder' => ($values['email_field_placeholder']) ? ($values['email_field_placeholder']) : NULL,
     'helper_text' => ($values['helper_text']) ? ($values['helper_text']) : NULL,
@@ -348,7 +348,7 @@ function convio_signup_add_submit($form, &$form_state) {
 }
 
 function convio_signup_delete($form, &$form_state, $form_id) {
-  $result = db_query("SELECT name, description FROM {convio_signup} where form_id = :form_id", array(':form_id' => $form_id))->fetchObject();
+  $result = db_query("SELECT title, description FROM {convio_signup} where form_id = :form_id", array(':form_id' => $form_id))->fetchObject();
   $form['warning'] = array(
     '#markup' => '<h2>You are about to delete the following Convio Signup Form:' . $result->description . '. This cannot be undone!</h2>'
   );
