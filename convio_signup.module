@@ -253,7 +253,7 @@ function convio_signup_add($form, &$form_state) {
     '#type' => 'textfield',
     '#size' => 120,
     '#maxlength' => 1024,
-    '#required' => TRUE
+    '#required' => TRUE,
   );
 
   $form['email_field_placeholder'] = array(
@@ -350,9 +350,7 @@ function convio_signup_add_submit($form, &$form_state) {
 
 function convio_signup_delete($form, &$form_state, $form_id) {
   $result = db_query("SELECT title, description FROM {convio_signup} where form_id = :form_id", array(':form_id' => $form_id))->fetchObject();
-  $form['warning'] = array(
-    '#markup' => '<h2>You are about to delete the following Convio Signup Form:' . $result->description . '. This cannot be undone!</h2>'
-  );
+  $form['warning'] = array('#markup' => '<h2>You are about to delete the following Convio Signup Form:' . $result->description . '. This cannot be undone!</h2>');
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -396,9 +394,7 @@ function convio_signup_remove($form_id) {
 function convio_signup_block_view($delta = '') {
   $result = db_query("SELECT * from {convio_signup} WHERE form_id = :delta", array(':delta' => $delta))->fetchObject();
   if ($result) {
-    return array(
-      'content' => drupal_get_form('convio_signup_block_form', $result)
-    );
+    return array('content' => drupal_get_form('convio_signup_block_form', $result));
   }
 }
 
