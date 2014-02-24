@@ -100,6 +100,7 @@ function convio_signup_block_configure($delta = '') {
       '#size' => 30,
       '#maxlength' => 255,
       '#default_value' => $result->submission_success_msg,
+      '#attributes' => (array('placeholder' => 'Thanks! We\'ll be in touch soon!')),
     );
 
     $form['source'] = array(
@@ -542,7 +543,7 @@ function convio_signup_form_callback($form, $form_state) {
   }
   else {
     $commands = array();
-    $status_message = empty($form_state['values']['submission_success_msg']) ? "Thanks. We'll be in touch soon!" : $form_state['values']['submission_success_msg'];
+    $status_message = empty($form_state['values']['submission_success_msg']) ? "Thanks! We'll be in touch soon!" : $form_state['values']['submission_success_msg'];
     $response = array(
       '#markup' => $status_message,
     );
