@@ -110,4 +110,3 @@ function convio_signup_schema() {
 
   return $schema;
 }
-

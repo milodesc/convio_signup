@@ -460,6 +460,13 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
     );
   }
 
+  if (!empty($form_data->submission_success_msg)) {
+    $form['submission_success_msg'] = array(
+      '#type' => 'value',
+      '#value' => $form_data->submission_success_msg,
+    );
+  }
+
   return $form;
 }
 
@@ -535,7 +542,7 @@ function convio_signup_form_callback($form, $form_state) {
   }
   else {
     $commands = array();
-    $status_message = "Thanks! We'll be in touch soon!";
+    $status_message = empty($form_state['values']['submission_success_msg']) ? "Thanks. We'll be in touch soon!" : $form_state['values']['submission_success_msg'];
     $response = array(
       '#markup' => $status_message,
     );
