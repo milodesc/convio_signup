@@ -604,7 +604,7 @@ function convio_signup_form_callback($form, $form_state) {
 }
 
 /**
- * Store the constituent record ID which was created by CLO in the Drupal database.
+ * Store the constituent ID created by Convio in the Drupal database.
  */
 function update_email_list_signups_record($field, $value, $submission_id) {
   return db_update('email_list_signups')
