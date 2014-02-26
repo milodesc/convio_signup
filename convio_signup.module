@@ -220,7 +220,7 @@ function convio_signup_admin() {
   $create_form_button = l(t('Create a Convio Signup Form block'), 'admin/structure/convio_signup/add', array('attributes' => array('class' => array('button'))));
   $convio_api_config_button = l(t('Configure the connection to Convio'), 'admin/config/system/convio_api_config', array('attributes' => array('class' => array('button'))));
 
-  return $table . $create_form_button . $convio_api_config_button;
+  return ((empty($table)) ? "<h2>There are no blocks set up.</h2>" : $table) . $create_form_button . $convio_api_config_button;
 }
 
 /**
