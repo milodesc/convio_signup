@@ -550,7 +550,7 @@ function convio_signup_block_form_submit($form, &$form_state) {
     return;
   }
 
-  update_email_list_signups_record('constituent_record_id', $response['createOrUpdateConsResponse']['cons_id'], $submission_id);
+  update_convio_signup_email_address_backup('constituent_record_id', $response['createOrUpdateConsResponse']['cons_id'], $submission_id);
 }
 
 /**
@@ -563,7 +563,7 @@ function convio_signup_block_form_submit($form, &$form_state) {
  *   The last insert ID of the query, if one exists.
  */
 function backup_email_address($email_address) {
-  return db_insert('email_list_signups')
+  return db_insert('convio_signup_email_address_backup')
     ->fields(array(
       'email_address_submitted' => $email_address,
       'submission_time' => date("Y-m-d H:i:s", REQUEST_TIME),
@@ -606,8 +606,8 @@ function convio_signup_form_callback($form, $form_state) {
 /**
  * Store the constituent ID created by Convio in the Drupal database.
  */
-function update_email_list_signups_record($field, $value, $submission_id) {
-  return db_update('email_list_signups')
+function update_convio_signup_email_address_backup($field, $value, $submission_id) {
+  return db_update('convio_signup_email_address_backup')
     ->fields(array(
       $field => $value,
     ))

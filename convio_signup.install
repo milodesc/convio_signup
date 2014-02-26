@@ -11,7 +11,7 @@ module_load_include('inc', 'convio_signup');
  * Implements hook_schema().
  */
 function convio_signup_schema() {
-  $schema['email_list_signups'] = array(
+  $schema['convio_signup_email_address_backup'] = array(
     'description' => 'A table containing the submissions of the email list signup.',
     'fields' => array(
       'submission_id' => array(
