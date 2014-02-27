@@ -505,7 +505,7 @@ function convio_signup_block_form_validate($form, &$form_state) {
   $constituent_email_address = $form_state['values']['constituent_email_address'];
   if (empty($constituent_email_address)) {
     watchdog("convio_signup", "Blank email address submitted.", array(), WATCHDOG_ERROR);
-    form_set_error('constituent_email_address', "Please enter an email address.");
+    form_set_error('', "Please enter an email address.");
     return;
   }
 
@@ -513,7 +513,7 @@ function convio_signup_block_form_validate($form, &$form_state) {
     $is_valid_email_response = convio_api_isEmailValid_request($constituent_email_address);
     if ($is_valid_email_response["isEmailValidResponse"]["valid"] === "false") {
       watchdog("convio_signup", "Invalid email address submitted: '$constituent_email_address''");
-      form_set_error('constituent_email_address', "The email address is invalid.");
+      form_set_error('', "The email address is invalid.");
     }
   }
   catch (Exception $e) {
