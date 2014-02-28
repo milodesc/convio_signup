@@ -431,6 +431,8 @@ function convio_signup_block_view($delta = '') {
  */
 function convio_signup_block_form($form, &$form_state, $form_data) {
 
+  $form_state['storage']['form_id'] = $form_data->form_id;
+
   $form['#attributes']['class'][] = 'convio-signup-form';
   $form['constituent_email_address'] = array(
     '#type' => 'textfield',
@@ -452,7 +454,7 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
 
   $form['submit']['#ajax'] = array(
     "callback" => "convio_signup_form_callback",
-    "wrapper" => "convio_signup_ajax_wrapper",
+    "wrapper" => "convio_signup_ajax_wrapper_" . $form_data->form_id,
     "effect" => "fade",
     "speed" => "slow",
     "progress" => array('type' => 'none'),
@@ -460,7 +462,7 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
 
   $form['wrapper'] = array(
     '#type' => 'markup',
-    '#prefix' => '<div id="convio_signup_ajax_wrapper">',
+    '#prefix' => '<div id="convio_signup_ajax_wrapper_' . $form_data->form_id . '">',
     '#suffix' => '</div>',
   );
 
@@ -573,19 +575,15 @@ function backup_email_address($email_address) {
 }
 
 /**
- *
  * Callback for convio_signup_block_form().
- *
- * @param $form
- * @param $form_state
- * @return array|string
  *
  * @ingroup callbacks
  */
 function convio_signup_form_callback($form, $form_state) {
 
+  $target = $form['submit']['#ajax']['wrapper'];
   if (form_get_errors()) {
-    return "<div id='convio_signup_ajax_wrapper'></div>";
+    return "<div id='" . $target . "'></div>";
   }
   else {
     $commands = array();
@@ -593,7 +591,7 @@ function convio_signup_form_callback($form, $form_state) {
     $response = array(
       '#markup' => $status_message,
     );
-    $commands[] = ajax_command_html('#convio_signup_ajax_wrapper', render($response));
+    $commands[] = ajax_command_html("#" . $target, render($response));
     $commands[] = array('command' => 'fadeAwayStatusMessage');
 
     return array(
