@@ -454,7 +454,7 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
 
   $form['submit']['#ajax'] = array(
     "callback" => "convio_signup_form_callback",
-    "wrapper" => "convio_signup_ajax_wrapper_" . $form_data->form_id,
+    "wrapper" => "convio_signup_ajax_results_wrapper_" . $form_data->form_id,
     "effect" => "fade",
     "speed" => "slow",
     "progress" => array('type' => 'none'),
@@ -462,7 +462,7 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
 
   $form['wrapper'] = array(
     '#type' => 'markup',
-    '#prefix' => '<div id="convio_signup_ajax_wrapper_' . $form_data->form_id . '">',
+    '#prefix' => '<div id="convio_signup_ajax_results_wrapper_' . $form_data->form_id . '">',
     '#suffix' => '</div>',
   );
 
@@ -514,7 +514,7 @@ function convio_signup_block_form_validate($form, &$form_state) {
   try {
     $is_valid_email_response = convio_api_isEmailValid_request($constituent_email_address);
     if ($is_valid_email_response["isEmailValidResponse"]["valid"] === "false") {
-      watchdog("convio_signup", "Invalid email address submitted: '$constituent_email_address'", array(), WATCHDOG_ERROR);
+      watchdog("convio_signup", "Invalid email address submitted: '$constituent_email_address'", array(), WATCHDOG_INFO);
       form_set_error('', "The email address is invalid.");
     }
   }
