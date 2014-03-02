@@ -353,7 +353,7 @@ function backup_email_address($email_address, $form_id) {
       'email_address_submitted' => $email_address,
       'convio_signup_form_id' => $form_id,
       'submission_time' => date("Y-m-d H:i:s", REQUEST_TIME),
-      'submission_source_url' => current_path(),
+      'submission_source_url' => request_path(),
     ))
     ->execute();
 }
@@ -376,7 +376,10 @@ function convio_signup_form_callback($form, $form_state) {
       '#markup' => $status_message,
     );
     $commands[] = ajax_command_html("#" . $target, render($response));
-    $commands[] = array('command' => 'fadeAwayStatusMessage');
+    $commands[] = array(
+      'command' => 'fadeAwayStatusMessage',
+      'targetElement' => $form['submit']['#ajax']['wrapper'],
+    );
 
     return array(
       '#type' => 'ajax',
