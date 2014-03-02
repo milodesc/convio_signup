@@ -1,7 +1,11 @@
 <?php
 /**
  * @file
- * Custom functionality to add email addresses to CLO
+ * Custom functionality to add email addresses to CLO.
+ *
+ * Using this module you can create email signup blocks that
+ * will use the Convio API to create records in the Convio
+ * Luminate Online database.
  */
 
 /**
@@ -24,7 +28,7 @@ function convio_signup_permission() {
   return array(
     'administer convio signup' => array(
       'title' => t('Administer Convio Signup'),
-      'description' => t('Perform administrative tasks on Convio Signup forms.'),
+      'description' => t('Create, configure and delete Convio Signup Form blocks.'),
     ),
   );
 }
@@ -59,7 +63,7 @@ function convio_signup_block_configure($delta = '') {
     );
 
     $form['title'] = array(
-      '#title' => t('Convio Signup Form name'),
+      '#title' => t('Convio Signup Form block title'),
       '#type' => 'textfield',
       '#size' => 30,
       '#maxlength' => 512,
@@ -206,7 +210,7 @@ function convio_signup_admin() {
     );
   }
 
-  $table = '';
+  $main_content = "<h2>There are no blocks set up.</h2>";
   if (!empty($rows)) {
     $header = array(
       'id'   => t('Block ID'),
@@ -214,13 +218,13 @@ function convio_signup_admin() {
       'desc' => t('Description'),
       'ops'  => t('Operations'),
     );
-    $table = theme('table', array('header' => $header, 'rows' => $rows));
+    $main_content = theme('table', array('header' => $header, 'rows' => $rows));
   }
 
   $create_form_button = l(t('Create a Convio Signup Form block'), 'admin/structure/convio_signup/add', array('attributes' => array('class' => array('button'))));
   $convio_api_config_button = l(t('Configure the connection to Convio'), 'admin/config/system/convio_api_config', array('attributes' => array('class' => array('button'))));
 
-  return ((empty($table)) ? "<h2>There are no blocks set up.</h2>" : $table) . $create_form_button . $convio_api_config_button;
+  return $main_content . $create_form_button . $convio_api_config_button;
 }
 
 /**
