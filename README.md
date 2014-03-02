@@ -15,3 +15,6 @@ convio_api module: https://github.com/milodesc/convio_api
 Convio API createOrUpdate documentation: http://open.convio.com/api/#constituent_api.createOrUpdate_method.html
 Convio API general documentation: http://open.convio.com/api/#main
 
+Credits
+=======
+Though not a direct fork, this project initially leaned heavily on jtolj's convio_signup module (https://github.com/jtolj/convio_signup).
