@@ -289,6 +289,13 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
     );
   }
 
+  if (!empty($form_data->no_welcome)) {
+    $form['no_welcome'] = array(
+      '#type' => 'value',
+      '#value' => $form_data->no_welcome,
+    );
+  }
+
   return $form;
 }
 
@@ -337,6 +344,10 @@ function convio_signup_block_form_submit($form, &$form_state) {
 
   if (!empty($form_values['sub_source'])) {
     $optional_params += array("sub_source" => $form_values['sub_source']);
+  }
+
+  if (!empty($form_values['no_welcome'])) {
+    $optional_params += array("no_welcome" => $form_values['no_welcome']);
   }
 
   try {
