@@ -133,6 +133,17 @@ function convio_signup_block_configure($delta = '') {
       '#maxlength' => 255,
       '#default_value' => $result->submit_button_text,
     );
+
+    $form['no_welcome'] = array(
+      '#title' => t('Send welcome email to new constituents created by this form?:'),
+      '#description' => t('Select \'Yes\' to send a welcome email (configured in Convio Luminate Online) to new constituents.'),
+      '#type' => 'radios',
+      '#options' => array(
+        'f' => 'Yes',
+        't' => 'No',
+      ),
+      '#default_value' => 't',
+    );
   }
 
   return $form;
@@ -152,6 +163,7 @@ function convio_signup_block_save($delta = '', $edit = array()) {
     'source' => ($edit['source']) ? $edit['source'] : NULL,
     'sub_source' => ($edit['sub_source']) ? $edit['sub_source'] : NULL,
     'submit_button_text' => ($edit['submit_button_text']) ? $edit['submit_button_text'] : NULL,
+    'no_welcome' => ($edit['no_welcome']) ? $edit['no_welcome'] : 't',
   );
 
   drupal_write_record('convio_signup_form_blocks', $data, 'form_id');
@@ -277,6 +289,13 @@ function convio_signup_block_form($form, &$form_state, $form_data) {
     );
   }
 
+  if (!empty($form_data->no_welcome)) {
+    $form['no_welcome'] = array(
+      '#type' => 'value',
+      '#value' => $form_data->no_welcome,
+    );
+  }
+
   return $form;
 }
 
@@ -325,6 +344,10 @@ function convio_signup_block_form_submit($form, &$form_state) {
 
   if (!empty($form_values['sub_source'])) {
     $optional_params += array("sub_source" => $form_values['sub_source']);
+  }
+
+  if (!empty($form_values['no_welcome'])) {
+    $optional_params += array("no_welcome" => $form_values['no_welcome']);
   }
 
   try {
