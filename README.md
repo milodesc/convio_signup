@@ -9,13 +9,17 @@ Once the convio_api and convio_signup modules are installed and configured, an a
 To add more blocks and edit or delete existing blocks, admins can visit Administration > Structure > Convio Signup Forms Configuration page.
 
 
+Dependencies
+============
+* Convio API module - https://github.com/milodesc/convio_api
+* Convio service and API credentials
+
 
 Resources
 =========
 convio_api module: https://github.com/milodesc/convio_api
 Convio API createOrUpdate documentation: http://open.convio.com/api/#constituent_api.createOrUpdate_method.html
 Convio API general documentation: http://open.convio.com/api/#main
-
 
 
 Credits
