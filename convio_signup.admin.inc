@@ -120,9 +120,10 @@ function convio_signup_add($form, &$form_state) {
     '#description' => t('Select \'Yes\' to send a welcome email (configured in Convio Luminate Online) to new constituents.'),
     '#type' => 'radios',
     '#options' => array(
-      'true' => 'Yes',
-      'false' => 'No',
+      'f' => 'Yes',
+      't' => 'No',
     ),
+    '#default_value' => 't',
   );
 
   $form['submit_button_text'] = array(
@@ -165,6 +166,7 @@ function convio_signup_add_submit($form, &$form_state) {
     'source' => ($values['source']) ? $values['source'] : NULL,
     'sub_source' => ($values['sub_source']) ? $values['sub_source'] : NULL,
     'submit_button_text' => ($values['submit_button_text']) ? $values['submit_button_text'] : NULL,
+    'no_welcome' => ($values['no_welcome']) ? $values['no_welcome'] : 't',
   );
 
   $result = drupal_write_record('convio_signup_form_blocks', $data);

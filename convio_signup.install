@@ -67,6 +67,11 @@ function convio_signup_schema() {
         'not null' => FALSE,
         'description' => 'Text for submit button',
       ),
+      'no_welcome' => array(
+        'description' => 'Whether or not to send a welcome email to new constituents. \'f\' means the form will sent a welcome email, \'t\' means to not send the welcome email.',
+        'type' => 'char',
+        'not null' => TRUE,
+      ),
     ),
     'primary key' => array('form_id'),
   );
