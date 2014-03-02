@@ -20,9 +20,9 @@ Dependencies
 
 Resources
 =========
-convio_api module: https://github.com/milodesc/convio_api
-Convio API createOrUpdate documentation: http://open.convio.com/api/#constituent_api.createOrUpdate_method.html
-Convio API general documentation: http://open.convio.com/api/#main
+* convio_api module: https://github.com/milodesc/convio_api
+* Convio API createOrUpdate documentation: http://open.convio.com/api/#constituent_api.createOrUpdate_method.html
+* Convio API general documentation: http://open.convio.com/api/#main
 
 
 Credits
