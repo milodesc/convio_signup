@@ -202,21 +202,6 @@ function convio_signup_block_view($delta = '') {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * Form constructor for the Convio Signup Block form.
  *
