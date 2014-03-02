@@ -11,7 +11,7 @@ module_load_include('inc', 'convio_signup');
  * Implements hook_schema().
  */
 function convio_signup_schema() {
-  $schema['convio_signup'] = array(
+  $schema['convio_signup_form_blocks'] = array(
     'description' => 'The convio_signup table stores information about Convio signup forms.',
     'fields' => array(
       'form_id' => array(
@@ -114,7 +114,7 @@ function convio_signup_schema() {
     'primary key' => array('submission_id'),
     'foreign keys' => array(
       'convio_signup' => array(
-        'table' => 'convio_signup',
+        'table' => 'convio_signup_form_blocks',
         'columns' => array('form_id' => 'form_id'),
       ),
     ),

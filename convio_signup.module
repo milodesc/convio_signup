@@ -39,7 +39,7 @@ function convio_signup_permission() {
 function convio_signup_block_info() {
   $blocks = array();
 
-  $result = db_query('SELECT form_id, title, description from {convio_signup}');
+  $result = db_query('SELECT form_id, title, description from {convio_signup_form_blocks}');
   foreach ($result as $item) {
     $blocks[$item->form_id] = array(
       'title' => $item->title,
@@ -55,7 +55,7 @@ function convio_signup_block_info() {
  */
 function convio_signup_block_configure($delta = '') {
   $form = array();
-  $result = db_query('SELECT * from {convio_signup} WHERE form_id = :delta', array(':delta' => $delta))->fetchObject();
+  $result = db_query('SELECT * from {convio_signup_form_blocks} WHERE form_id = :delta', array(':delta' => $delta))->fetchObject();
 
   if ($result) {
     $form['overview'] = array(
@@ -154,7 +154,7 @@ function convio_signup_block_save($delta = '', $edit = array()) {
     'submit_button_text' => ($edit['submit_button_text']) ? $edit['submit_button_text'] : NULL,
   );
 
-  drupal_write_record('convio_signup', $data, 'form_id');
+  drupal_write_record('convio_signup_form_blocks', $data, 'form_id');
 }
 
 /**
@@ -196,7 +196,7 @@ function convio_signup_menu() {
  * Implements hook_block_view().
  */
 function convio_signup_block_view($delta = '') {
-  $result = db_query("SELECT * from {convio_signup} WHERE form_id = :delta", array(':delta' => $delta))->fetchObject();
+  $result = db_query("SELECT * from {convio_signup_form_blocks} WHERE form_id = :delta", array(':delta' => $delta))->fetchObject();
   if ($result) {
     return array('content' => drupal_get_form('convio_signup_block_form', $result));
   }

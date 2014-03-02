@@ -10,7 +10,7 @@
  */
 function convio_signup_admin() {
 
-  $results = db_query("SELECT form_id, title, description FROM {convio_signup}");
+  $results = db_query("SELECT form_id, title, description FROM {convio_signup_form_blocks}");
 
   foreach ($results as $row) {
     $actions = array(
@@ -157,7 +157,7 @@ function convio_signup_add_submit($form, &$form_state) {
     'submit_button_text' => ($values['submit_button_text']) ? $values['submit_button_text'] : NULL,
   );
 
-  $result = drupal_write_record('convio_signup', $data);
+  $result = drupal_write_record('convio_signup_form_blocks', $data);
 
   if ($result) {
     drupal_set_message('Your signup form has been created');
@@ -178,7 +178,7 @@ function convio_signup_add_submit($form, &$form_state) {
  * @ingroup forms
  */
 function convio_signup_delete($form, &$form_state, $form_id) {
-  $result = db_query("SELECT title, description FROM {convio_signup} where form_id = :form_id", array(':form_id' => $form_id))->fetchObject();
+  $result = db_query("SELECT title, description FROM {convio_signup_form_blocks} where form_id = :form_id", array(':form_id' => $form_id))->fetchObject();
   $form['warning'] = array('#markup' => '<h2>You are about to delete the following Convio Signup Form:' . $result->description . '. This cannot be undone!</h2>');
 
   $form['actions'] = array('#type' => 'actions');
@@ -210,14 +210,14 @@ function convio_signup_delete_submit($form, &$form_state) {
  *   The ID of the form being deleted.
  */
 function convio_signup_remove($form_id) {
-  $res = db_query('DELETE from {convio_signup} WHERE form_id = :form_id', array(':form_id' => $form_id));
+  $res = db_query('DELETE from {convio_signup_form_blocks} WHERE form_id = :form_id', array(':form_id' => $form_id));
   if ($res) {
     drupal_set_message('The Convio signup form has been deleted.');
   }
   else {
     drupal_set_message('There was an error deleting the signup form.', 'error');
   }
-  $res = db_query("DELETE from {block} WHERE module = 'convio_signup' AND delta = :form_id", array(':form_id' => $form_id));
+  $res = db_query("DELETE from {block} WHERE module = 'convio_signup_form_blocks' AND delta = :form_id", array(':form_id' => $form_id));
   if (!$res) {
     drupal_set_message('There was an error deleting the form from the blocks table.', 'error');
   }
