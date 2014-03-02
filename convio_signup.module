@@ -216,6 +216,7 @@ function convio_signup_block_view($delta = '') {
 function convio_signup_block_form($form, &$form_state, $form_data) {
 
   $form['#attributes']['class'][] = 'convio-signup-form';
+  $form_state['storage']['form_id'] = $form_data->form_id;
   $form['constituent_email_address'] = array(
     '#type' => 'textfield',
     '#description' => $form_data->helper_text,
@@ -315,7 +316,7 @@ function convio_signup_block_form_validate($form, &$form_state) {
 function convio_signup_block_form_submit($form, &$form_state) {
   $form_values = $form_state['values'];
   $new_email_address = $form_values['constituent_email_address'];
-  $submission_id = backup_email_address($new_email_address);
+  $submission_id = backup_email_address($new_email_address, $form_state['storage']['form_id']);
 
   $optional_params = array();
   if (!empty($form_values['source'])) {
@@ -346,10 +347,11 @@ function convio_signup_block_form_submit($form, &$form_state) {
  * @returns int
  *   The last insert ID of the query, if one exists.
  */
-function backup_email_address($email_address) {
+function backup_email_address($email_address, $form_id) {
   return db_insert('convio_signup_email_address_backup')
     ->fields(array(
       'email_address_submitted' => $email_address,
+      'convio_signup_form_id' => $form_id,
       'submission_time' => date("Y-m-d H:i:s", REQUEST_TIME),
       'submission_source_url' => current_path(),
     ))

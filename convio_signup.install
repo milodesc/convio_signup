@@ -11,43 +11,6 @@ module_load_include('inc', 'convio_signup');
  * Implements hook_schema().
  */
 function convio_signup_schema() {
-  $schema['convio_signup_email_address_backup'] = array(
-    'description' => 'A table containing the submissions of the email list signup.',
-    'fields' => array(
-      'submission_id' => array(
-        'description' => 'The primary identifier for a submission.',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'email_address_submitted' => array(
-        'description' => 'The email address submitted by the user.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'submission_time' => array(
-        'description' => 'The date and time the email address was submitted.',
-        'type' => 'varchar',
-        'mysql_type' => 'datetime',
-        'not null' => TRUE,
-      ),
-      'submission_source_url' => array(
-        'description' => 'The url of the page on which the email address was submitted.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-      ),
-      'constituent_record_id' => array(
-        'description' => 'The constituent record ID created by Convio Luminate Online.',
-        'type' => 'int',
-        'size' => 'medium',
-      ),
-    ),
-    'primary key' => array('submission_id'),
-  );
-
   $schema['convio_signup'] = array(
     'description' => 'The convio_signup table stores information about Convio signup forms.',
     'fields' => array(
@@ -106,6 +69,55 @@ function convio_signup_schema() {
       ),
     ),
     'primary key' => array('form_id'),
+  );
+
+  $schema['convio_signup_email_address_backup'] = array(
+    'description' => 'A table containing the submissions of the email list signup.',
+    'fields' => array(
+      'submission_id' => array(
+        'description' => 'The primary identifier for a submission.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'email_address_submitted' => array(
+        'description' => 'The email address submitted by the user.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'convio_signup_form_id' => array(
+        'description' => 'The ID of the form used to submit the email address.',
+        'type' => 'int',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'submission_time' => array(
+        'description' => 'The date and time the email address was submitted.',
+        'type' => 'varchar',
+        'mysql_type' => 'datetime',
+        'not null' => TRUE,
+      ),
+      'submission_source_url' => array(
+        'description' => 'The url of the page on which the email address was submitted.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'constituent_record_id' => array(
+        'description' => 'The constituent record ID created by Convio Luminate Online.',
+        'type' => 'int',
+        'size' => 'medium',
+      ),
+    ),
+    'primary key' => array('submission_id'),
+    'foreign keys' => array(
+      'convio_signup' => array(
+        'table' => 'convio_signup',
+        'columns' => array('form_id' => 'form_id'),
+      ),
+    ),
   );
 
   return $schema;
