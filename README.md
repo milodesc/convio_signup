@@ -1,6 +1,6 @@
 Description
 ===========
-This drupal module allows site admins to create simple, ajaxy email list signup forms for Convio Luminate Online account holders.
+This drupal module allows site admins to create simple, ajaxy email list signup forms for organizations that use the Convio Luminate Online CRM.
 
 The signup forms created by this module create constituent records in the Convio Luminate Online database via Convio's createOrUpdate API method (http://open.convio.com/api/#constituent_api.createOrUpdate_method.html). To use this module, the Convio API module, which sends and processes Convio API requests, must first be installed and configured.
 
