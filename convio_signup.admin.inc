@@ -115,6 +115,16 @@ function convio_signup_add($form, &$form_state) {
     '#maxlength' => 255,
   );
 
+  $form['no_welcome'] = array(
+    '#title' => t('Send welcome email to new constituents created by this form?:'),
+    '#description' => t('Select \'Yes\' to send a welcome email (configured in Convio Luminate Online) to new constituents.'),
+    '#type' => 'radios',
+    '#options' => array(
+      'true' => 'Yes',
+      'false' => 'No',
+    ),
+  );
+
   $form['submit_button_text'] = array(
     '#title' => t("Submit button text"),
     '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
