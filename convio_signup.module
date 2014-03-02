@@ -435,8 +435,6 @@ function convio_signup_block_view($delta = '') {
  */
 function convio_signup_block_form($form, &$form_state, $form_data) {
 
-  $form_state['storage']['form_id'] = $form_data->form_id;
-
   $form['#attributes']['class'][] = 'convio-signup-form';
   $form['constituent_email_address'] = array(
     '#type' => 'textfield',
