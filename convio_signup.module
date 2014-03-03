@@ -98,7 +98,7 @@ function convio_signup_block_configure($delta = '') {
     );
 
     $form['external_facing_fields']['submission_success_msg'] = array(
-      '#title' => t('Success Message:'),
+      '#title' => t('Success Message'),
       '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
       '#type' => 'textfield',
       '#size' => 30,
