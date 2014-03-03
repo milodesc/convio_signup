@@ -62,12 +62,61 @@ function convio_signup_block_configure($delta = '') {
       '#markup' => t('Edit a Convio Signup Form block by changing the values below.'),
     );
 
-    $form['title'] = array(
-      '#title' => t('Convio Signup Form block title'),
+    $form['external_facing_fields'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Form display configuration'),
+      '#weight' => 0,
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#description' => 'Fields to configure the display of the Convio Signup Form',
+    );
+
+    $form['external_facing_fields']['title'] = array(
+      '#title' => t('Form Title'),
       '#type' => 'textfield',
       '#size' => 30,
       '#maxlength' => 512,
       '#default_value' => $result->title,
+    );
+
+    $form['external_facing_fields']['email_field_placeholder'] = array(
+      '#title' => t('Email Field Placeholder'),
+      '#description' => t("The text that displays inside the email field before the user enters their email address."),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 512,
+      '#default_value' => $result->email_field_placeholder,
+    );
+
+    $form['external_facing_fields']['helper_text'] = array(
+      '#title' => t('User Helper Text'),
+      '#description' => t('Text that instucts the user how to use the form.'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->helper_text,
+    );
+
+    $form['external_facing_fields']['submission_success_msg'] = array(
+      '#title' => t('Success Message:'),
+      '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->submission_success_msg,
+      '#attributes' => (array('placeholder' => 'Thanks! We\'ll be in touch soon!')),
+    );
+
+    $form['external_facing_fields']['submit_button_text'] = array(
+      '#title' => t("Submit Button Text"),
+      '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
+      '#type' => 'textfield',
+      '#size' => 30,
+      '#maxlength' => 255,
+      '#default_value' => $result->submit_button_text,
+      '#attributes' => array(
+        'placeholder' => 'Submit',
+      ),
     );
 
     $form['description'] = array(
@@ -77,34 +126,6 @@ function convio_signup_block_configure($delta = '') {
       '#maxlength' => 1024,
       '#required' => TRUE,
       '#default_value' => $result->description,
-    );
-
-    $form['email_field_placeholder'] = array(
-      '#title' => t('Email field placeholder'),
-      '#description' => t("The text that displays inside the email field before the user enters their email address."),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 512,
-      '#default_value' => $result->email_field_placeholder,
-    );
-
-    $form['helper_text'] = array(
-      '#title' => t('User Helper Text'),
-      '#description' => t('Text that instucts the user how to use the form.'),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 255,
-      '#default_value' => $result->helper_text,
-    );
-
-    $form['submission_success_msg'] = array(
-      '#title' => t('Email submission success message:'),
-      '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
-      '#type' => 'textfield',
-      '#size' => 30,
-      '#maxlength' => 255,
-      '#default_value' => $result->submission_success_msg,
-      '#attributes' => (array('placeholder' => 'Thanks! We\'ll be in touch soon!')),
     );
 
     $form['source'] = array(

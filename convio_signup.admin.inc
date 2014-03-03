@@ -57,11 +57,58 @@ function convio_signup_add($form, &$form_state) {
     '#markup' => t('Create a new Convio Signup Form block by filling out and submitting the form below.'),
   );
 
-  $form['title'] = array(
-    '#title' => t('Convio Signup Form name'),
+  $form['external_facing_fields'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Form display configuration'),
+    '#weight' => 0,
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#description' => 'Fields to configure the display of the Convio Signup Form',
+  );
+
+  $form['external_facing_fields']['title'] = array(
+    '#title' => t('Form Title'),
     '#type' => 'textfield',
     '#size' => 30,
     '#maxlength' => 512,
+  );
+
+  $form['external_facing_fields']['email_field_placeholder'] = array(
+    '#title' => t('Email Field Placeholder'),
+    '#description' => t("The text that displays inside the email field before the user enters their email address."),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 512,
+  );
+
+  $form['external_facing_fields']['helper_text'] = array(
+    '#title' => t('User Helper Text'),
+    '#description' => t('Text that instucts the user how to use the form.'),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 255,
+  );
+
+  $form['external_facing_fields']['submission_success_msg'] = array(
+    '#title' => t('Success Message'),
+    '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
+    '#type' => 'textfield',
+    '#attributes' => array(
+      'placeholder' => "Thanks! We'll be in touch soon!",
+    ),
+    '#size' => 30,
+    '#maxlength' => 255,
+  );
+
+  $form['external_facing_fields']['submit_button_text'] = array(
+    '#title' => t("Submit Button Text"),
+    '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
+    '#type' => 'textfield',
+    '#size' => 30,
+    '#maxlength' => 255,
+    '#attributes' => array(
+      'placeholder' => 'Submit',
+    ),
   );
 
   $form['description'] = array(
@@ -70,33 +117,6 @@ function convio_signup_add($form, &$form_state) {
     '#size' => 120,
     '#maxlength' => 1024,
     '#required' => TRUE,
-  );
-
-  $form['email_field_placeholder'] = array(
-    '#title' => t('Email field placeholder'),
-    '#description' => t("The text that displays inside the email field before the user enters their email address."),
-    '#type' => 'textfield',
-    '#size' => 30,
-    '#maxlength' => 512,
-  );
-
-  $form['helper_text'] = array(
-    '#title' => t('User Helper Text'),
-    '#description' => t('Text that instucts the user how to use the form.'),
-    '#type' => 'textfield',
-    '#size' => 30,
-    '#maxlength' => 255,
-  );
-
-  $form['submission_success_msg'] = array(
-    '#title' => t('Email submission success message:'),
-    '#description' => t('Text that appears after the user successfully submits their email address. Defaults to "Thanks! We\'ll be in touch soon!"'),
-    '#type' => 'textfield',
-    '#attributes' => array(
-      'placeholder' => "Thanks! We'll be in touch soon!",
-    ),
-    '#size' => 30,
-    '#maxlength' => 255,
   );
 
   $form['source'] = array(
@@ -124,17 +144,6 @@ function convio_signup_add($form, &$form_state) {
       't' => 'No',
     ),
     '#default_value' => 't',
-  );
-
-  $form['submit_button_text'] = array(
-    '#title' => t("Submit button text"),
-    '#description' => t("What should the button the user clicks to submit their email address say? Defaults to 'Submit'."),
-    '#type' => 'textfield',
-    '#size' => 30,
-    '#maxlength' => 255,
-    '#attributes' => array(
-      'placeholder' => 'Submit',
-    ),
   );
 
   $form['actions'] = array('#type' => 'actions');
@@ -191,7 +200,7 @@ function convio_signup_add_submit($form, &$form_state) {
  */
 function convio_signup_delete($form, &$form_state, $form_id) {
   $result = db_query("SELECT title, description FROM {convio_signup_form_blocks} where form_id = :form_id", array(':form_id' => $form_id))->fetchObject();
-  $form['warning'] = array('#markup' => '<h2>You are about to delete the following Convio Signup Form:' . $result->description . '. This cannot be undone!</h2>');
+  $form['warning'] = array('#markup' => '<h2>You are about to delete the following Convio Signup Form: "' . $result->description . '." This cannot be undone!</h2>');
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
